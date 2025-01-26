@@ -8,6 +8,13 @@ import 'cadastro/login.dart';
 
 import 'localizar/maps.dart';
 
+// import 'clinica/clinica.dart';
+
+import 'usuario/user.dart';
+
+import 'pet/cadastro_pet.dart';
+
+
 void main() {
   runApp(const VetManagerApp());
 }
@@ -27,6 +34,8 @@ class VetManagerApp extends StatelessWidget {
         '/register': (context) => const RegisterScreen(),
         '/launcher': (context) => LauncherScreen(),
         '/maps': (context) => MapsScreen(),
+        '/user': (context) => UserProfileScreen(),
+        '/cadastro_pet': (context) => CadastroPetScreen(),
       },
     );
   }

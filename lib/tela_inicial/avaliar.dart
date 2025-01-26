@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import './launcher.dart';
 
 class ReviewScreen extends StatelessWidget {
   final String name;
   final String address;
   final String image;
 
-  // Recebe os dados da clínica como parâmetros
   ReviewScreen({
     required this.name,
     required this.address,
@@ -14,20 +15,32 @@ class ReviewScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    double userRating = 0;
     return Scaffold(
-      backgroundColor: Colors.orange[50], // Cor de fundo suave
+      appBar: AppBar(
+        backgroundColor: Colors.teal,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => LauncherScreen()),
+            );
+          },
+        ),
+      ),
+      backgroundColor: Colors.orange[50],
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             SizedBox(height: 40),
-            // Imagem circular no topo
             CircleAvatar(
               radius: 70,
-              backgroundImage: AssetImage(image), // Usa a imagem passada como parâmetro
+              backgroundImage: AssetImage(image),
             ),
             SizedBox(height: 20),
-            // Nome do Veterinário ou Clínica
             Text(
               name,
               style: TextStyle(
@@ -37,7 +50,6 @@ class ReviewScreen extends StatelessWidget {
               ),
             ),
             SizedBox(height: 8),
-            // Endereço
             Text(
               address,
               textAlign: TextAlign.center,
@@ -47,7 +59,6 @@ class ReviewScreen extends StatelessWidget {
               ),
             ),
             SizedBox(height: 20),
-            // Container verde com os detalhes
             Container(
               margin: EdgeInsets.symmetric(horizontal: 16),
               padding: EdgeInsets.all(16),
@@ -65,19 +76,23 @@ class ReviewScreen extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  // Avaliação com estrelas
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(5, (index) {
-                      return Icon(
-                        Icons.star,
-                        color: index < 4 ? Colors.yellow[700] : Colors.grey,
-                        size: 36,
-                      );
-                    }),
+                  RatingBar.builder(
+                    initialRating: 0,
+                    minRating: 1,
+                    direction: Axis.horizontal,
+                    allowHalfRating: true,
+                    itemCount: 5,
+                    itemPadding: const EdgeInsets.symmetric(horizontal: 4.0),
+                    itemBuilder: (context, _) => const Icon(
+                      Icons.star,
+                      color: Colors.amber,
+                    ),
+                    onRatingUpdate: (rating) {
+                      userRating = rating;
+                      print('Avaliação do Usuário: $rating');
+                    },
                   ),
                   SizedBox(height: 16),
-                  // Campo para comentários adicionais
                   TextField(
                     maxLines: 3,
                     decoration: InputDecoration(
@@ -92,7 +107,6 @@ class ReviewScreen extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 16),
-                  // Botão de enviar avaliação
                   ElevatedButton(
                     onPressed: () {
                       // Ação ao enviar a avaliação
@@ -103,7 +117,8 @@ class ReviewScreen extends StatelessWidget {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(15),
                       ),
-                      padding: EdgeInsets.symmetric(vertical: 14, horizontal: 32),
+                      padding: EdgeInsets.symmetric(
+                          vertical: 14, horizontal: 32),
                     ),
                     child: Text(
                       'Enviar Avaliação',
@@ -114,7 +129,6 @@ class ReviewScreen extends StatelessWidget {
               ),
             ),
             SizedBox(height: 20),
-            // Botão de Avaliar no final
             ElevatedButton(
               onPressed: () {
                 // Ação ao avaliar

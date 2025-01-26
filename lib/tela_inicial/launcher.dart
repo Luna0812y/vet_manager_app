@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'dart:io';
 import 'avaliar.dart';
 
@@ -37,10 +38,10 @@ class _LauncherScreenState extends State<LauncherScreen> {
         Navigator.pushNamed(context, '/maps');  // Navega para o mapa
         break;
       case 2:
-        Navigator.pushNamed(context, '/pet');  // Tela do pet (criar essa tela se necessário)
+        Navigator.pushNamed(context, '/clinica');  // Tela do pet (criar essa tela se necessário)
         break;
       case 3:
-        Navigator.pushNamed(context, '/profile');  // Tela do perfil (criar essa tela se necessário)
+        Navigator.pushNamed(context, '/user');  // Tela do perfil (criar essa tela se necessário)
         break;
       default:
         break;
@@ -189,29 +190,33 @@ class _LauncherScreenState extends State<LauncherScreen> {
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.shifting,
         currentIndex: _selectedIndex, // Atualiza a seleção
-        type: BottomNavigationBarType.fixed,
         selectedItemColor: Colors.teal,
         unselectedItemColor: Colors.grey,
+        onTap: _onItemTapped,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.search),
             label: 'Discover',
+            backgroundColor: Colors.white,
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.map),
             label: 'Maps',
+            backgroundColor: Colors.white,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.pets),
-            label: 'Pet',
+            icon: Icon(Symbols.clinical_notes),
+            label: 'Clinica',
+            backgroundColor: Colors.white,
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
             label: 'Profile',
+            backgroundColor: Colors.white,
           ),
         ],
-        onTap: _onItemTapped, // Chamando a função quando um item é selecionado
       ),
     );
   }
