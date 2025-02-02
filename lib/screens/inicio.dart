@@ -94,7 +94,7 @@ class WelcomeScreen extends StatelessWidget {
                       ),
                     ),
                     onPressed: () {
-                      Navigator.pushNamed(context, '/cadastro');
+                      Navigator.pushNamed(context, '/register');
                     },
                   ),
                 ),

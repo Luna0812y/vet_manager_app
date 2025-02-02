@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'tela_inicial/launcher.dart';
 import 'tela_inicial/avaliar.dart';
 
-import 'cadastro/cadastro.dart';
-import 'cadastro/inicio.dart';
-import 'cadastro/login.dart';
+import 'screens/cadastro.dart';
+import 'screens/inicio.dart';
+import 'screens/login.dart';
 
 import 'localizar/maps.dart';
 
