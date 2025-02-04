@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vet_manager/screens/clinicas.dart';
+import 'package:vet_manager/screens/profile_screen.dart';
 import 'package:vet_manager/widgets/clinica_card.dart';
 import 'package:vet_manager/services/clinica_service.dart';
+import 'package:vet_manager/services/user_service.dart';
 import 'dart:io';
 import 'avaliar.dart';
 
@@ -15,14 +18,17 @@ class _LauncherScreenState extends State<LauncherScreen> {
   File? _selectedImage;
   int _selectedIndex = 0;
   final ClinicaService _clinicaService = ClinicaService();
+  final UserService _userService = UserService();
   List<Map<String, dynamic>> _clinicas = [];
   bool _isLoading = true;
   String _errorMessage = "";
+  int? _userId; // Adicionando variável para armazenar o ID do usuário
 
   @override
   void initState() {
     super.initState();
     _loadClinicas();
+    _loadUserId(); // 🔹 Carregar o ID do usuário autenticado
   }
 
   Future<void> _loadClinicas() async {
@@ -38,6 +44,14 @@ class _LauncherScreenState extends State<LauncherScreen> {
         _isLoading = false;
       });
     }
+  }
+
+  /// 🔹 **Busca o ID do usuário no SharedPreferences**
+  Future<void> _loadUserId() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _userId = prefs.getInt("userId");
+    });
   }
 
   Future<void> _pickImage() async {
@@ -69,7 +83,18 @@ class _LauncherScreenState extends State<LauncherScreen> {
         Navigator.pushReplacementNamed(context, '/pet');
         break;
       case 3:
-        Navigator.pushReplacementNamed(context, '/profile');
+        if (_userId != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ProfileScreen(userId: _userId!),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Erro ao carregar perfil do usuário.")),
+          );
+        }
         break;
     }
   }

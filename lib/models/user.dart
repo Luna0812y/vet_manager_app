@@ -1,37 +1,37 @@
 class User {
-  final String id;
+  final int id;
+  final String cpf;
   final String name;
   final String email;
-  final String phone;
-  final String birthDate;
+  final String password;
 
   User({
     required this.id,
+    required this.cpf,
     required this.name,
     required this.email,
-    required this.phone,
-    required this.birthDate,
+    required this.password,
   });
 
-  // Converter User para Map (para armazenar no Firestore, por exemplo)
+  // Converter User para Map
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
-      'name': name,
-      'email': email,
-      'phone': phone,
-      'birthDate': birthDate,
+      'id_usuario': id,
+      'cpf_usuario': cpf,
+      'nome_usuario': name,
+      'email_usuario': email,
+      'senha_usuario': password,
     };
   }
 
-  // Criar User a partir de um Map (ao recuperar dados do Firestore, por exemplo)
+  // Criar User a partir de um Map
   factory User.fromMap(Map<String, dynamic> map) {
     return User(
-      id: map['id'] ?? '',
-      name: map['name'] ?? '',
-      email: map['email'] ?? '',
-      phone: map['phone'] ?? '',
-      birthDate: map['birthDate'] ?? '',
+      id: map['id_usuario'] ?? 0,
+      cpf: map['cpf_usuario'] ?? '',
+      name: map['nome_usuario'] ?? '',
+      email: map['email_usuario'] ?? '',
+      password: map['senha_usuario'] ?? '',
     );
   }
 }
