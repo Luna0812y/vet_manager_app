@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'tela_inicial/launcher.dart';
 import 'tela_inicial/avaliar.dart';
 
@@ -8,7 +9,9 @@ import 'screens/login.dart';
 
 import 'localizar/maps.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // 🔹 Garante que os bindings do Flutter são inicializados
+  SharedPreferences prefs = await SharedPreferences.getInstance(); // 🔹 Inicializa antes de rodar a aplicação
   runApp(const VetManagerApp());
 }
 
