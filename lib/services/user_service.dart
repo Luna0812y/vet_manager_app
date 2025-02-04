@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vet_manager/models/user.dart';
@@ -80,25 +81,58 @@ class UserService {
 
 
   /// 🔹 **Busca os dados do usuário com o ID salvo**
-  Future<User> fetchUserData([int? userId]) async {
+  Future<User> fetchUserData(int userId) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    int? storedUserId = prefs.getInt("userId");
+    String? token = prefs.getString("token");
 
-    userId ??= storedUserId; // Se userId for null, usa o armazenado
-
-    if (userId == null) {
+    if (token == null) {
       throw Exception("Usuário não está logado.");
     }
 
-    final response = await http.get(Uri.parse("$_baseUrl/$userId"));
+    final response = await http.get(
+      Uri.parse("http://192.168.11.9:3000/users/$userId"), // 🔹 Agora busca pelo ID
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+    );
+
+    print("Resposta do servidor: ${response.body}"); // Debugging
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body);
       return User.fromMap(data);
     } else {
-      throw Exception("Erro ao buscar dados do usuário.");
+      throw Exception("Erro ao buscar dados do usuário. Código: ${response.statusCode}");
     }
   }
+
+ Future<bool> uploadProfilePicture(File imageFile) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("token");
+    int? userId = prefs.getInt("userId");
+
+    if (token == null || userId == null) {
+      throw Exception("Usuário não está logado.");
+    }
+
+    var request = http.MultipartRequest(
+      'POST',
+      Uri.parse("$_baseUrl/$userId/uploadPhoto"),
+    );
+
+    request.headers['Authorization'] = "Bearer $token";
+    request.files.add(await http.MultipartFile.fromPath('file', imageFile.path));
+
+    var response = await request.send();
+
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      throw Exception("Erro ao enviar imagem: ${response.statusCode}");
+    }
+  }
+
 
   /// 🔹 **Retorna o ID do usuário salvo**
   Future<int?> getUserId() async {

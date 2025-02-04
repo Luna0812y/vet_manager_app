@@ -22,13 +22,13 @@ class _LauncherScreenState extends State<LauncherScreen> {
   List<Map<String, dynamic>> _clinicas = [];
   bool _isLoading = true;
   String _errorMessage = "";
-  int? _userId; // Adicionando variável para armazenar o ID do usuário
+  int? _userId; 
 
   @override
   void initState() {
     super.initState();
     _loadClinicas();
-    _loadUserId(); // 🔹 Carregar o ID do usuário autenticado
+    _loadUserId();
   }
 
   Future<void> _loadClinicas() async {
@@ -46,7 +46,6 @@ class _LauncherScreenState extends State<LauncherScreen> {
     }
   }
 
-  /// 🔹 **Busca o ID do usuário no SharedPreferences**
   Future<void> _loadUserId() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
