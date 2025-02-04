@@ -114,7 +114,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               },
               icon: Icon(Icons.add, color: Colors.teal),
               label: Text(
-                'Adicione um PET',
+                'Adicione um Pet',
                 style: TextStyle(color: Colors.teal),
               ),
             ),
