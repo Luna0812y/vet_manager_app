@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ClinicaService {
-  static const String baseUrl = "http://192.168.11.9:3000/";
+  static const String baseUrl = "http://localhost:3000/";
 
   Future<List<Map<String, dynamic>>> fetchClinics() async {
     final response = await http.get(Uri.parse("$baseUrl/clinicas"));

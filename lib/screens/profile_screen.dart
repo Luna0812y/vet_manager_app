@@ -9,9 +9,7 @@ import '../models/user.dart';
 import '../services/user_service.dart';
 
 class ProfileScreen extends StatefulWidget {
-  final int userId;
-
-  const ProfileScreen({Key? key, required this.userId}) : super(key: key);
+  const ProfileScreen({Key? key}) : super(key: key);
 
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
@@ -25,7 +23,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _userFuture = _userService.fetchUserData(widget.userId);
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    try {
+      int? userId = await _userService.getUserIdFromToken();
+      if (userId == null) {
+        throw Exception("ID do usuário não encontrado.");
+      }
+
+      setState(() {
+        _userFuture = _userService.fetchUserData();
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text("Erro ao carregar perfil."),
+        backgroundColor: Colors.red,
+      ));
+    }
   }
 
   Future<void> _pickImage() async {

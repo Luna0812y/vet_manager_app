@@ -86,7 +86,7 @@ class _LauncherScreenState extends State<LauncherScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ProfileScreen(userId: _userId!),
+              builder: (context) => ProfileScreen(),
             ),
           );
         } else {

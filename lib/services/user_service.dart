@@ -3,9 +3,10 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vet_manager/models/user.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 class UserService {
-  static const String _baseUrl = 'http://192.168.11.9:3000/users';
+  static const String _baseUrl = 'http://localhost:3000/users';
 
   Future<bool> registerUser({
     required String nomeUsuario,
@@ -14,9 +15,9 @@ class UserService {
     required String cpfUsuario,
   }) async {
     final Map<String, dynamic> userData = {
-      'name': nomeUsuario,
-      'email': emailUsuario,
-      'password': senhaUsuario,
+      'nome_usuario': nomeUsuario,
+      'email_usuario': emailUsuario,
+      'senha_usuario': senhaUsuario,
       'cpf': cpfUsuario,
     };
 
@@ -61,12 +62,16 @@ class UserService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         String token = data["token"];
-        int userId = data["id_usuario"]; // Pegando o ID corretamente
 
-        // 🔹 **Salvar o token e ID no SharedPreferences**
+        // 🔹 **Salvar apenas o token**
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString("token", token);
-        await prefs.setInt("userId", userId);
+
+        // 🔍 **Verifica se o token contém o ID**
+        int? userId = await getUserIdFromToken();
+        if (userId == null) {
+          throw Exception("Token inválido: ID do usuário não encontrado.");
+        }
 
         return true;
       } else if (response.statusCode == 401) {
@@ -80,8 +85,21 @@ class UserService {
   }
 
 
-  /// 🔹 **Busca os dados do usuário com o ID salvo**
-  Future<User> fetchUserData(int userId) async {
+
+Future<int?> getUserIdFromToken() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? token = prefs.getString("token");
+
+  if (token == null) return null;
+
+  Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+    return decodedToken["id_usuario"]; // Certifique-se de que o campo correto está no payload
+  } 
+
+
+
+    /// 🔹 **Busca os dados do usuário com o ID salvo**
+    Future<User> fetchUserData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString("token");
 
@@ -89,15 +107,18 @@ class UserService {
       throw Exception("Usuário não está logado.");
     }
 
+    int? userId = await getUserIdFromToken();
+    if (userId == null) {
+      throw Exception("ID do usuário não encontrado no token.");
+    }
+
     final response = await http.get(
-      Uri.parse("http://192.168.11.9:3000/users/$userId"), // 🔹 Agora busca pelo ID
+      Uri.parse("$_baseUrl/$userId"),
       headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer $token",
       },
     );
-
-    print("Resposta do servidor: ${response.body}"); // Debugging
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body);
@@ -106,6 +127,7 @@ class UserService {
       throw Exception("Erro ao buscar dados do usuário. Código: ${response.statusCode}");
     }
   }
+
 
  Future<bool> uploadProfilePicture(File imageFile) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
