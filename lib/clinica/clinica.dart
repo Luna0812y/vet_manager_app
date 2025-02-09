@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
-class MapsScreen extends StatefulWidget {
-  const MapsScreen({Key? key}) : super(key: key);
+class ClinicScreen extends StatefulWidget {
+  const ClinicScreen({Key? key}) : super(key: key);
 
   @override
-  _MapsScreenState createState() => _MapsScreenState();
+  _ClinicScreenState createState() => _ClinicScreenState();
 }
 
-class _MapsScreenState extends State<MapsScreen> {
+class _ClinicScreenState extends State<ClinicScreen> {
   int _selectedIndex = 1; // Índice inicial para a tela de Mapas
   late stt.SpeechToText _speech; // Instância para reconhecimento de fala
   bool _isListening = false; // Estado de escuta
@@ -32,10 +32,10 @@ class _MapsScreenState extends State<MapsScreen> {
           Navigator.pushNamed(context, '/launcher');
           break;
         case 1:
-          // Já está na tela de Mapas, não faz nada
+          Navigator.pushNamed(context, '/maps');
           break;
         case 2:
-          Navigator.pushNamed(context, '/clinica');
+          // Navigator.pushNamed(context, '/clinica');
           break;
         case 3:
           Navigator.pushNamed(context, '/user');
@@ -123,7 +123,7 @@ class _MapsScreenState extends State<MapsScreen> {
           children: const [
             // Conteúdo da tela de Mapas
             Center(
-              child: Text('Aqui vai o conteúdo do Maps'),
+              child: Text('Aqui vai o conteúdo da Clinic'),
             ),
           ],
         ),

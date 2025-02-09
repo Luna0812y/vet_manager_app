@@ -118,7 +118,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 SizedBox(height: 20),
                 _buildInfoRow("Nome", user.name),
-                _buildInfoRow("Email", user.email),
+                _buildInfoRow("Email", user.email), 
                 _buildInfoRow("CPF", user.cpf),
                 Spacer(), // Empurra o botão de logout para o final da tela
                 ElevatedButton.icon(

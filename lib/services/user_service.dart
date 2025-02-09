@@ -15,10 +15,10 @@ class UserService {
     required String cpfUsuario,
   }) async {
     final Map<String, dynamic> userData = {
+      'cpf_usuario': cpfUsuario,
       'nome_usuario': nomeUsuario,
       'email_usuario': emailUsuario,
       'senha_usuario': senhaUsuario,
-      'cpf': cpfUsuario,
     };
 
     try {
@@ -48,8 +48,8 @@ class UserService {
     required String senha,
   }) async {
     final Map<String, dynamic> loginData = {
-      'email': email,
-      'password': senha,
+      'email_usuario': email,
+      'senha_usuario': senha,
     };
 
     try {
@@ -95,8 +95,6 @@ Future<int?> getUserIdFromToken() async {
   Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
     return decodedToken["id_usuario"]; // Certifique-se de que o campo correto está no payload
   } 
-
-
 
     /// 🔹 **Busca os dados do usuário com o ID salvo**
     Future<User> fetchUserData() async {
