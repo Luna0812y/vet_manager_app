@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vet_manager/clinica/clinica.dart';
+import 'package:vet_manager/pet/cadastro_pet.dart';
+import 'package:vet_manager/usuario/user.dart';
 import 'tela_inicial/launcher.dart';
 import 'tela_inicial/avaliar.dart';
 
-import 'cadastro/cadastro.dart';
-import 'cadastro/inicio.dart';
-import 'cadastro/login.dart';
+import 'screens/cadastro.dart';
+import 'screens/inicio.dart';
+import 'screens/login.dart';
 
 import 'localizar/maps.dart';
 
-import 'clinica/clinica.dart';
-
-import 'usuario/user.dart';
-
-import 'pet/cadastro_pet.dart';
-
-
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // 🔹 Garante que os bindings do Flutter são inicializados
+  SharedPreferences prefs = await SharedPreferences.getInstance(); // 🔹 Inicializa antes de rodar a aplicação
   runApp(const VetManagerApp());
 }
 

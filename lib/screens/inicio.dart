@@ -19,7 +19,7 @@ class WelcomeScreen extends StatelessWidget {
           Align(
             alignment: Alignment.topCenter,
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.start, // Alinha no topo
+              mainAxisAlignment: MainAxisAlignment.center, // Alinha no topo
               children: [
                 Image.asset('assets/images/logo.png', height: 120),
                 const SizedBox(height: 20),

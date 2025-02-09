@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:material_symbols_icons/symbols.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vet_manager/screens/clinicas.dart';
+import 'package:vet_manager/screens/profile_screen.dart';
+import 'package:vet_manager/widgets/clinica_card.dart';
+import 'package:vet_manager/services/clinica_service.dart';
+import 'package:vet_manager/services/user_service.dart';
 import 'dart:io';
 import 'avaliar.dart';
 
@@ -10,21 +15,54 @@ class LauncherScreen extends StatefulWidget {
 }
 
 class _LauncherScreenState extends State<LauncherScreen> {
-  File? _selectedImage; // Armazena a imagem selecionada
-  int _selectedIndex = 0; // Índice do item selecionado no BottomNavigationBar
+  File? _selectedImage;
+  int _selectedIndex = 0;
+  final ClinicaService _clinicaService = ClinicaService();
+  final UserService _userService = UserService();
+  List<Map<String, dynamic>> _clinicas = [];
+  bool _isLoading = true;
+  String _errorMessage = "";
+  int? _userId; 
 
-  // Função para selecionar a imagem
-  Future<void> _pickImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery); // Seleciona da galeria
-    if (image != null) {
+  @override
+  void initState() {
+    super.initState();
+    _loadClinicas();
+    _loadUserId();
+  }
+
+  Future<void> _loadClinicas() async {
+    try {
+      List<Map<String, dynamic>> clinicas = await _clinicaService.fetchClinics();
       setState(() {
-        _selectedImage = File(image.path); // Salva o caminho da imagem selecionada
+        _clinicas = clinicas;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = "Erro ao carregar clínicas.";
+        _isLoading = false;
       });
     }
   }
 
-  // Função para mudar a tela conforme o item selecionado no BottomNavigationBar
+  Future<void> _loadUserId() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _userId = prefs.getInt("userId");
+    });
+  }
+
+  Future<void> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      setState(() {
+        _selectedImage = File(image.path);
+      });
+    }
+  }
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -32,25 +70,37 @@ class _LauncherScreenState extends State<LauncherScreen> {
 
     switch (index) {
       case 0:
-        Navigator.pushNamed(context, '/launcher');
+        Navigator.pushReplacementNamed(context, '/launcher');
         break;
       case 1:
-        Navigator.pushNamed(context, '/maps');  // Navega para o mapa
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ClinicasScreen()),
+        );
         break;
       case 2:
-        Navigator.pushNamed(context, '/clinica');  // Tela do pet (criar essa tela se necessário)
+        Navigator.pushReplacementNamed(context, '/pet');
         break;
       case 3:
-        Navigator.pushNamed(context, '/user');  // Tela do perfil (criar essa tela se necessário)
-        break;
-      default:
+        if (_userId != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ProfileScreen(),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Erro ao carregar perfil do usuário.")),
+          );
+        }
         break;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    double screenHeight = MediaQuery.of(context).size.height; // Altura da tela
+    double screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
       appBar: AppBar(
@@ -62,7 +112,6 @@ class _LauncherScreenState extends State<LauncherScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // Header (Meu Pet)
             Container(
               width: double.infinity,
               decoration: BoxDecoration(
@@ -75,19 +124,19 @@ class _LauncherScreenState extends State<LauncherScreen> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     GestureDetector(
-                      onTap: _pickImage, // Permite anexar imagem ao clicar
+                      onTap: _pickImage,
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(50),
                         child: _selectedImage != null
                             ? Image.file(
-                                _selectedImage!, // Usando Image.file para arquivos de imagem
-                                height: 120, // Tamanho fixo da imagem
-                                width: 120, // Tamanho fixo da imagem
+                                _selectedImage!,
+                                height: 120,
+                                width: 120,
                                 fit: BoxFit.cover,
                               )
                             : Container(
-                                height: 120, // Tamanho fixo
-                                width: 120, // Tamanho fixo
+                                height: 120,
+                                width: 120,
                                 color: Colors.grey[300],
                                 child: Icon(
                                   Icons.add_a_photo,
@@ -122,8 +171,6 @@ class _LauncherScreenState extends State<LauncherScreen> {
               ),
             ),
             SizedBox(height: 16),
-
-            // Título "Clínicas mais bem avaliadas"
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Align(
@@ -139,154 +186,71 @@ class _LauncherScreenState extends State<LauncherScreen> {
             ),
             SizedBox(height: 8),
 
-            // Lista de clínicas
+            // Exibição dinâmica das clínicas
             Container(
-              height: screenHeight * 0.3, // Limita o tamanho da lista de clínicas
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                children: [
-                  ClinicCard(
-                    name: 'VETERINARY CLINIC',
-                    address: 'Rua das Acácias, 123 - Bairro Jardim Florido, São Paulo, SP',
-                    image: 'assets/images/clinica1.jpg',
-                    onTap: () {
-                      // Navega para a tela de avaliação e passa os dados da clínica
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ReviewScreen(
-                            name: 'VETERINARY CLINIC',
-                            address: 'Rua das Acácias, 123 - Bairro Jardim Florido, São Paulo, SP',
-                            image: 'assets/images/clinica1.jpg', // Caminho correto para a imagem
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  SizedBox(width: 16),
-                  ClinicCard(
-                    name: 'VEININAY CLINIC',
-                    address: 'Avenida Central, 456 - Bairro Belo Horizonte, Rio de Janeiro, RJ',
-                    image: 'assets/images/clinica2.webp',
-                    onTap: () {
-                      // Navega para a tela de avaliação e passa os dados da clínica
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ReviewScreen(
-                            name: 'VEININAY CLINIC',
-                            address: 'Avenida Central, 456 - Bairro Belo Horizonte, Rio de Janeiro, RJ',
-                            image: 'assets/images/clinica2.webp',
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
+              height: screenHeight * 0.3,
+              child: _isLoading
+                  ? Center(child: CircularProgressIndicator()) // Mostra um indicador de carregamento
+                  : _errorMessage.isNotEmpty
+                      ? Center(child: Text(_errorMessage)) // Exibe erro caso ocorra
+                      : _clinicas.isEmpty
+                          ? Center(child: Text("Nenhuma clínica encontrada."))
+                          : ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              padding: EdgeInsets.symmetric(horizontal: 16),
+                              itemCount: _clinicas.length,
+                              itemBuilder: (context, index) {
+                                final clinica = _clinicas[index];
+                                return Padding(
+                                  padding: EdgeInsets.only(right: 16),
+                                  child: ClinicCard(
+                                    name: clinica['nome_clinica'],
+                                    address: clinica['endereco_clinica'],
+                                    image: 'assets/images/clinica1.jpg',
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => ReviewScreen(
+                                            name: clinica['nome_clinica'],
+                                            address: clinica['endereco_clinica'],
+                                            image: 'assets/images/clinica1.jpg',
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
             ),
           ],
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.shifting,
-        currentIndex: _selectedIndex, // Atualiza a seleção
+        currentIndex: _selectedIndex,
+        type: BottomNavigationBarType.fixed,
         selectedItemColor: Colors.teal,
         unselectedItemColor: Colors.grey,
-        onTap: _onItemTapped,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.search),
             label: 'Discover',
-            backgroundColor: Colors.white,
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.map),
-            label: 'Maps',
-            backgroundColor: Colors.white,
+            label: 'Clinics',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Symbols.clinical_notes),
-            label: 'Clinica',
-            backgroundColor: Colors.white,
+            icon: Icon(Icons.pets),
+            label: 'Pet',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
             label: 'Profile',
-            backgroundColor: Colors.white,
           ),
         ],
-      ),
-    );
-  }
-}
-
-class ClinicCard extends StatelessWidget {
-  final String name;
-  final String address;
-  final String image;
-  final VoidCallback onTap;
-
-  ClinicCard({
-    required this.name,
-    required this.address,
-    required this.image,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 250,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 8,
-            spreadRadius: 2,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: GestureDetector(
-        onTap: onTap, // Função de navegação para a tela de avaliação
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-              child: Image.asset(
-                image,
-                height: 120, // Tamanho fixo da imagem
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                name,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Text(
-                address,
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 12,
-                ),
-              ),
-            ),
-          ],
-        ),
+        onTap: _onItemTapped,
       ),
     );
   }
