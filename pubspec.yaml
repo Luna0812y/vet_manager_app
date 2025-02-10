@@ -37,6 +37,7 @@ dependencies:
   shared_preferences: ^2.5.1
   flutter_rating_bar: ^4.0.1
   flutter_dotenv: ^5.2.1
+  uuid: ^4.3.3
 dependency_overrides:
   speech_to_text_platform_interface: ^2.3.0
 
@@ -88,8 +89,10 @@ flutter:
     - assets/images/bird.png
     - assets/images/fish.png
     - assets/images/rabbit.png
+    - assets/images/person-marker.png
 
     - assets/dados/breeds.txt
+    - assets/pet-marker.png
 
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg

@@ -14,10 +14,13 @@ class _ClinicasScreenState extends State<ClinicasScreen> {
   Set<Marker> markers = {};
   LatLng? _currentPosition;
   bool isLoading = true;
+  BitmapDescriptor? _customIcon;
+  BitmapDescriptor? customIconPerson;
 
   @override
   void initState() {
     super.initState();
+    loadIcon();
     _getCurrentLocation();
     _loadClinics();
   }
@@ -73,8 +76,24 @@ class _ClinicasScreenState extends State<ClinicasScreen> {
                 "${clinic['avaliacao_clinica']} ★ (${clinic['total_avaliacoes']} avaliações)\n",
             onTap: () => _showClinicDetails(clinic),
           ),
+          icon: _customIcon ?? BitmapDescriptor.defaultMarker,
         );
       }).toSet();
+    });
+  }
+
+  Future<BitmapDescriptor> _getCustomIcon(String path) async {
+    return await BitmapDescriptor.asset(
+      ImageConfiguration(size: Size(48, 48)),
+      path,
+    );
+  }
+
+  loadIcon() async {
+    BitmapDescriptor customIcon =
+        await _getCustomIcon('assets/images/logo.png');
+    setState(() {
+      _customIcon = customIcon;
     });
   }
 
