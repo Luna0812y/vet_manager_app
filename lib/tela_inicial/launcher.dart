@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vet_manager/screens/agendamento.dart';
 import 'package:vet_manager/screens/clinicas.dart';
 import 'package:vet_manager/screens/profile_screen.dart';
 import 'package:vet_manager/widgets/clinica_card.dart';
@@ -59,11 +60,20 @@ class _LauncherScreenState extends State<LauncherScreen> {
   }
 
   Future<void> _loadUserId() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _userId = prefs.getInt("userId");
-    });
+    try {
+      int? userId = await _userService.getUserIdFromToken();
+      if (userId != null) {
+        setState(() {
+          _userId = userId;
+        });
+      } else {
+        throw Exception("ID do usuário não encontrado.");
+      }
+    } catch (e) {
+      print("Erro ao obter ID do usuário: $e");
+    }
   }
+
 
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
@@ -85,30 +95,21 @@ class _LauncherScreenState extends State<LauncherScreen> {
         Navigator.pushReplacementNamed(context, '/launcher');
         break;
       case 1:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => ClinicasScreen()),
-        );
+        Navigator.push(context, MaterialPageRoute(builder: (context) => ClinicasScreen()));
         break;
       case 2:
         Navigator.pushReplacementNamed(context, '/pet');
         break;
       case 3:
-        if (_userId != null) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ProfileScreen(),
-            ),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Erro ao carregar perfil do usuário.")),
-          );
-        }
+        Navigator.push(context, MaterialPageRoute(builder: (context) => AgendamentosScreen()));
+        break;
+      case 4:
+        Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileScreen()));
         break;
     }
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -249,7 +250,8 @@ class _LauncherScreenState extends State<LauncherScreen> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
-        type: BottomNavigationBarType.fixed,
+        type: 
+        BottomNavigationBarType.fixed,
         selectedItemColor: Colors.teal,
         unselectedItemColor: Colors.grey,
         items: const [
@@ -264,6 +266,10 @@ class _LauncherScreenState extends State<LauncherScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.pets),
             label: 'Pet',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.calendar_today),
+            label: 'Agendamentos',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),

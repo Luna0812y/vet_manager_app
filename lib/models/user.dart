@@ -24,14 +24,14 @@ class User {
     };
   }
 
-  // Criar User a partir de um Map
+  // Criar User a partir de um Map (aceitando chaves alternativas)
   factory User.fromMap(Map<String, dynamic> map) {
     return User(
-      id: map['id_usuario'] ?? 0,
-      cpf: map['cpf_usuario'] ?? '',
-      name: map['nome_usuario'] ?? '',
-      email: map['email_usuario'] ?? '',
-      password: map['senha_usuario'] ?? '',
+      id: map['id_usuario'] ?? map['id'] ?? 0,
+      cpf: map['cpf_usuario'] ?? map['cpf'] ?? '',
+      name: map['nome_usuario'] ?? map['nome'] ?? '',
+      email: map['email_usuario'] ?? map['email'] ?? '',
+      password: map['senha_usuario'] ?? map['senha'] ?? '',
     );
   }
 }

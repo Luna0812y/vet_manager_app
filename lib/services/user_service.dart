@@ -8,6 +8,7 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 class UserService {
   static const String _baseUrl = 'https://vetmanager-cvof.onrender.com/users';
 
+  /// 🔹 **Cadastra um novo usuário**
   Future<bool> registerUser({
     required String nomeUsuario,
     required String emailUsuario,
@@ -18,13 +19,11 @@ class UserService {
       'nome_usuario': nomeUsuario.trim(),
       'email_usuario': emailUsuario.trim().toLowerCase(),
       'senha_usuario': senhaUsuario,
-      'foto_usuario': "null", // Changed from empty string to null as it might be expected by the server
-      'cpf': cpfUsuario.replaceAll(RegExp(r'[^\d]'), ''), // Remove non-digits from CPF
+      'foto_usuario': null, // Ajustado para null
+      'cpf': cpfUsuario.replaceAll(RegExp(r'[^\d]'), ''), // Remove caracteres não numéricos
     };
 
     try {
-      print('Sending registration request with data: ${json.encode(userData)}');
-      
       final response = await http.post(
         Uri.parse('$_baseUrl/cadastro'),
         headers: {
@@ -33,9 +32,6 @@ class UserService {
         },
         body: json.encode(userData),
       );
-
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
 
       if (response.statusCode == 201) {
         return true;
@@ -48,15 +44,11 @@ class UserService {
         throw Exception('Erro ao cadastrar usuário: ${response.body}');
       }
     } catch (e) {
-      print('Registration error: $e');
-      if (e is FormatException) {
-        throw Exception('Erro ao processar resposta do servidor');
-      }
-      rethrow;
+      throw Exception('Erro ao registrar usuário: $e');
     }
   }
 
-  /// 🔹 **Faz login e salva o token + ID do usuário**
+  /// 🔹 **Faz login e salva o token**
   Future<bool> loginUser({
     required String email,
     required String senha,
@@ -74,23 +66,15 @@ class UserService {
       );
 
       if (response.statusCode == 200) {
-
         final Map<String, dynamic> data = json.decode(response.body);
+        String? token = data["token"];
 
-         // Extrai o token do JSON
-        String token = data["token"];
-
-        print("token: $token");
-      
-        // 🔹 **Salvar apenas o token**
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString("token", token);
-
-   
-        if (token == null) {
+        if (token == null || token.isEmpty) {
           throw Exception("Token inválido: token não encontrado.");
         }
-          
+
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString("token", token);
 
         return true;
       } else if (response.statusCode == 401) {
@@ -103,20 +87,40 @@ class UserService {
     }
   }
 
+  /// 🔹 **Obtém o ID do usuário a partir do token salvo**
+  Future<int?> getUserIdFromToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("token");
+
+    if (token == null) {
+      print("⚠️ Token não encontrado no SharedPreferences.");
+      return null;
+    }
+
+    try {
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      print('Token: $token');
+      print("📌 Token Decodificado: $decodedToken");
+
+      // Acessando o ID corretamente
+      int? userId = decodedToken["id"];
+      
+      if (userId == null) {
+        print("⚠️ ID do usuário não encontrado no token.");
+        return null;
+      }
+
+      return userId;
+    } catch (e) {
+      print("Erro ao decodificar token: $e");
+      return null;
+    }
+  }
 
 
-Future<int?> getUserIdFromToken() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  String? token = prefs.getString("token");
 
-  if (token == null) return null;
-
-  Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
-    return decodedToken["id_usuario"]; // Certifique-se de que o campo correto está no payload
-  } 
-
-    /// 🔹 **Busca os dados do usuário com o ID salvo**
-    Future<User> fetchUserData() async {
+  /// 🔹 **Busca os dados do usuário pelo ID**
+  Future<User> fetchUserData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString("token");
 
@@ -124,13 +128,8 @@ Future<int?> getUserIdFromToken() async {
       throw Exception("Usuário não está logado.");
     }
 
-    int? userId = await getUserIdFromToken();
-    if (userId == null) {
-      throw Exception("ID do usuário não encontrado no token.");
-    }
-
     final response = await http.get(
-      Uri.parse("$_baseUrl/$userId"),
+      Uri.parse("$_baseUrl/me"),
       headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer $token",
@@ -146,46 +145,46 @@ Future<int?> getUserIdFromToken() async {
   }
 
 
- Future<bool> uploadProfilePicture(File imageFile) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  String? token = prefs.getString("token");
-  
-  if (token == null) {
-    throw Exception("Usuário não está logado.");
-  }
-
-  int? userId = await getUserIdFromToken();
-  if (userId == null) {
-    throw Exception("ID do usuário não encontrado no token.");
-  }
-
-  var request = http.MultipartRequest(
-    'POST',
-    Uri.parse("$_baseUrl/$userId/uploadPhoto"),
-  );
-
-  request.headers['Authorization'] = "Bearer $token";
-  request.headers['Content-Type'] = 'multipart/form-data';
-  request.files.add(await http.MultipartFile.fromPath('file', imageFile.path));
-
-  try {
-    var streamedResponse = await request.send();
-    var response = await http.Response.fromStream(streamedResponse);
-
-    if (response.statusCode == 200) {
-    return true;
-    } else {
-    throw Exception("Erro ao enviar imagem. Código: ${response.statusCode}, Mensagem: ${response.body}");
-    }
-  } catch (e) {
-    throw Exception("Erro durante o upload da imagem: $e");
-  }
-  }
-
-
-  /// 🔹 **Retorna o ID do usuário salvo**
-  Future<int?> getUserId() async {
+  /// 🔹 **Faz upload da foto de perfil do usuário**
+  Future<bool> uploadProfilePicture(File imageFile) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getInt("userId");
+    String? token = prefs.getString("token");
+
+    if (token == null) {
+      throw Exception("Usuário não está logado.");
+    }
+
+    int? userId = await getUserIdFromToken();
+    if (userId == null) {
+      throw Exception("ID do usuário não encontrado no token.");
+    }
+
+    var request = http.MultipartRequest(
+      'POST',
+      Uri.parse("$_baseUrl/$userId/uploadPhoto"),
+    );
+
+    request.headers['Authorization'] = "Bearer $token";
+    request.files.add(await http.MultipartFile.fromPath('file', imageFile.path));
+
+    try {
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        throw Exception("Erro ao enviar imagem. Código: ${response.statusCode}, Mensagem: ${response.body}");
+      }
+    } catch (e) {
+      throw Exception("Erro durante o upload da imagem: $e");
+    }
   }
+
+  /// 🔹 **Retorna o ID do usuário salvo no token**
+  Future<int?> getUserId() async {
+    return getUserIdFromToken();
+  }
+
+
 }

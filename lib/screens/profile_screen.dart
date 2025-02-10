@@ -23,26 +23,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _loadUserData();
+    _userFuture = _loadUserData(); // 🔹 Inicializa o Future corretamente
   }
 
-  Future<void> _loadUserData() async {
+  Future<User> _loadUserData() async {
     try {
-      int? userId = await _userService.getUserIdFromToken();
-      if (userId == null) {
-        throw Exception("ID do usuário não encontrado.");
-      }
-
-      setState(() {
-        _userFuture = _userService.fetchUserData();
-      });
+      return await _userService.fetchUserData(); // 🔹 Agora busca o usuário autenticado via /me
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("Erro ao carregar perfil."),
-        backgroundColor: Colors.red,
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Erro ao carregar perfil: ${e.toString()}"),
+          backgroundColor: Colors.red,
+        ),
+      );
+      rethrow;
     }
   }
+
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
