@@ -8,6 +8,7 @@ import 'package:vet_manager/services/clinica_service.dart';
 import 'package:vet_manager/services/user_service.dart';
 import 'dart:io';
 import 'avaliar.dart';
+import 'package:http/http.dart' as http;
 
 class LauncherScreen extends StatefulWidget {
   @override
@@ -22,7 +23,7 @@ class _LauncherScreenState extends State<LauncherScreen> {
   List<Map<String, dynamic>> _clinicas = [];
   bool _isLoading = true;
   String _errorMessage = "";
-  int? _userId; 
+  int? _userId;
 
   @override
   void initState() {
@@ -31,9 +32,20 @@ class _LauncherScreenState extends State<LauncherScreen> {
     _loadUserId();
   }
 
+  loadInfoClinica() {}
+
   Future<void> _loadClinicas() async {
     try {
-      List<Map<String, dynamic>> clinicas = await _clinicaService.fetchClinics();
+      List<Map<String, dynamic>> clinicas =
+          await _clinicaService.fetchClinics();
+
+      print("NOOOME DA CLINICA:  $clinicas");
+      print("NOOOME DA CLINICA 2:  $_clinicas");
+      print("NOOOME DA CLINICA 3:  ${clinicas[0]["endereco_clinica"]}");
+
+      print("clinica 1: ${clinicas[0]["nome_clinica"]}\n");
+
+      setState(() {});
       setState(() {
         _clinicas = clinicas;
         _isLoading = false;
@@ -116,7 +128,8 @@ class _LauncherScreenState extends State<LauncherScreen> {
               width: double.infinity,
               decoration: BoxDecoration(
                 color: Colors.teal,
-                borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+                borderRadius:
+                    BorderRadius.vertical(bottom: Radius.circular(20)),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -190,9 +203,12 @@ class _LauncherScreenState extends State<LauncherScreen> {
             Container(
               height: screenHeight * 0.3,
               child: _isLoading
-                  ? Center(child: CircularProgressIndicator()) // Mostra um indicador de carregamento
+                  ? Center(
+                      child:
+                          CircularProgressIndicator()) // Mostra um indicador de carregamento
                   : _errorMessage.isNotEmpty
-                      ? Center(child: Text(_errorMessage)) // Exibe erro caso ocorra
+                      ? Center(
+                          child: Text(_errorMessage)) // Exibe erro caso ocorra
                       : _clinicas.isEmpty
                           ? Center(child: Text("Nenhuma clínica encontrada."))
                           : ListView.builder(
@@ -204,16 +220,20 @@ class _LauncherScreenState extends State<LauncherScreen> {
                                 return Padding(
                                   padding: EdgeInsets.only(right: 16),
                                   child: ClinicCard(
-                                    name: clinica['nome_clinica'],
-                                    address: clinica['endereco_clinica'],
+                                    name: clinica['nome_clinica'] ?? '',
+                                    address: clinica['localizacao']
+                                            ["endereco"] ??
+                                        '',
                                     image: 'assets/images/clinica1.jpg',
                                     onTap: () {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
                                           builder: (context) => ReviewScreen(
-                                            name: clinica['nome_clinica'],
-                                            address: clinica['endereco_clinica'],
+                                            name: clinica['nome_clinica'] ?? '',
+                                            address:
+                                                clinica['endereco_clinica'] ??
+                                                    '',
                                             image: 'assets/images/clinica1.jpg',
                                           ),
                                         ),
@@ -235,11 +255,11 @@ class _LauncherScreenState extends State<LauncherScreen> {
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.search),
-            label: 'Discover',
+            label: 'Descobrir',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.map),
-            label: 'Clinics',
+            label: 'Clinicas',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.pets),
@@ -247,7 +267,7 @@ class _LauncherScreenState extends State<LauncherScreen> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
-            label: 'Profile',
+            label: 'Perfil',
           ),
         ],
         onTap: _onItemTapped,

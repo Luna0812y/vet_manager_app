@@ -58,68 +58,19 @@ class _ClinicasScreenState extends State<ClinicasScreen> {
   }
 
   /// Carrega as clínicas de Teresina
-  void _loadClinics() {
-    final List<Map<String, dynamic>> clinics = [
-      {
-        'nome': 'UDVet - Unidade de Diagnóstico Veterinário',
-        'endereco': 'R. Prof. Pires Gayoso, 335 - Noivos, Teresina - PI, 64046-350',
-        'latitude': -5.0700,
-        'longitude': -42.7800,
-        'nota': 4.8,
-        'avaliacoes': 141,
-        'descricao': 'Exames rápidos e confiáveis para seu pet. Agende agora!',
-        'imagem': 'assets/images/clinica1.jpg',
-      },
-      {
-        'nome': 'HVT Hospital Veterinário de Teresina',
-        'endereco': 'Av. Mal. Juarez Távora, Quadra 57 - Casa 08 - Parque Piaui, Teresina - PI, 64025-196',
-        'latitude': -5.1000,
-        'longitude': -42.8100,
-        'nota': 4.3,
-        'avaliacoes': 856,
-        'descricao': 'Hospital Veterinário de referência em Teresina.',
-        'imagem': 'assets/images/clinica2.jpg',
-      },
-      {
-        'nome': 'UbPet Teresina',
-        'endereco': 'R. Barroso, 1928 - Vermelha, Teresina - PI, 64018-520',
-        'latitude': -5.0800,
-        'longitude': -42.7900,
-        'nota': 4.9,
-        'avaliacoes': 552,
-        'descricao': 'Clínica especializada em atendimento personalizado para seu pet.',
-        'imagem': 'assets/images/clinica3.jpeg',
-      },
-      {
-        'nome': "Hospital Veterinário Animal's 24 Horas",
-        'endereco': 'Av. Nossa Sra. de Fátima, 1525 - Fátima, Teresina - PI, 64048-180',
-        'latitude': -5.0600,
-        'longitude': -42.7700,
-        'nota': 4.2,
-        'avaliacoes': 700,
-        'descricao': 'Atendimento 24 horas para emergências veterinárias.',
-        'imagem': 'assets/images/clinica4.jpeg',
-      },
-      {
-        'nome': 'Criar - Hospital Veterinário 24h',
-        'endereco': 'Av. Jóquei Clube, 2176 - Letra B - São Cristóvão, Teresina - PI, 64052-160',
-        'latitude': -5.0500,
-        'longitude': -42.7600,
-        'nota': 4.8,
-        'avaliacoes': 233,
-        'descricao': 'Atendimento veterinário especializado 24h.',
-        'imagem': 'assets/images/clinica5.jpeg',
-      },
-    ];
+  void _loadClinics() async {
+    final clinicas = await ClinicaService().fetchClinics();
 
     setState(() {
-      markers = clinics.map((clinic) {
+      markers = clinicas.map((clinic) {
         return Marker(
-          markerId: MarkerId(clinic['nome']),
-          position: LatLng(clinic['latitude'], clinic['longitude']),
+          markerId: MarkerId(clinic['nome_clinica']),
+          position: LatLng(clinic["localizacao"]["latitude"],
+              clinic["localizacao"]["longitude"]),
           infoWindow: InfoWindow(
-            title: clinic['nome'],
-            snippet: "${clinic['nota']} ★ (${clinic['avaliacoes']} avaliações)\n${clinic['descricao']}",
+            title: clinic['nome_clinica'],
+            snippet:
+                "${clinic['avaliacao_clinica']} ★ (${clinic['total_avaliacoes']} avaliações)\n",
             onTap: () => _showClinicDetails(clinic),
           ),
         );
@@ -162,7 +113,6 @@ class _ClinicasScreenState extends State<ClinicasScreen> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -184,24 +134,25 @@ class _ClinicasScreenState extends State<ClinicasScreen> {
           GoogleMap(
             onMapCreated: _onMapCreated,
             initialCameraPosition: CameraPosition(
-              target: _currentPosition ?? LatLng(-5.08921, -42.8016), // Posição inicial: Teresina, PI
+              target: _currentPosition ??
+                  LatLng(-5.08921, -42.8016), // Posição inicial: Teresina, PI
               zoom: 12,
             ),
             markers: markers.union(
               _currentPosition != null
-                ? {
-                    Marker(
-                      markerId: MarkerId("current_location"),
-                      position: _currentPosition!,
-                      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-                      infoWindow: InfoWindow(title: "Você está aqui"),
-                    ),
-                  }
-                : {},
+                  ? {
+                      Marker(
+                        markerId: MarkerId("current_location"),
+                        position: _currentPosition!,
+                        icon: BitmapDescriptor.defaultMarkerWithHue(
+                            BitmapDescriptor.hueBlue),
+                        infoWindow: InfoWindow(title: "Você está aqui"),
+                      ),
+                    }
+                  : {},
             ),
           ),
-          if (isLoading)
-            Center(child: CircularProgressIndicator()),
+          if (isLoading) Center(child: CircularProgressIndicator()),
         ],
       ),
     );
