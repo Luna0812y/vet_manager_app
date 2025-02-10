@@ -1,42 +1,42 @@
-import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:vet_manager/clinica/clinica.dart';
-import 'package:vet_manager/pet/cadastro_pet.dart';
-import 'package:vet_manager/usuario/user.dart';
-import 'tela_inicial/launcher.dart';
-import 'tela_inicial/avaliar.dart';
+  import 'package:flutter/material.dart';
+  import 'package:shared_preferences/shared_preferences.dart';
+  import 'package:vet_manager/clinica/clinica.dart';
+  import 'package:vet_manager/pet/cadastro_pet.dart';
+  import 'package:vet_manager/usuario/user.dart';
+  import 'tela_inicial/launcher.dart';
+  import 'tela_inicial/avaliar.dart';
 
-import 'screens/cadastro.dart';
-import 'screens/inicio.dart';
-import 'screens/login.dart';
+  import 'screens/cadastro.dart';
+  import 'screens/inicio.dart';
+  import 'screens/login.dart';
 
-import 'localizar/maps.dart';
+  import 'localizar/maps.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // 🔹 Garante que os bindings do Flutter são inicializados
-  SharedPreferences prefs = await SharedPreferences.getInstance(); // 🔹 Inicializa antes de rodar a aplicação
-  runApp(const VetManagerApp());
-}
-
-class VetManagerApp extends StatelessWidget {
-  const VetManagerApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(primarySwatch: Colors.teal),
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const WelcomeScreen(),
-        '/login': (context) => const LoginScreen(),
-        '/register': (context) => const RegisterScreen(),
-        '/launcher': (context) => LauncherScreen(),
-        '/maps': (context) => MapsScreen(),
-        '/user': (context) => UserProfileScreen(),
-        '/cadastro_pet': (context) => CadastroPetScreen(),
-        '/clinica': (context) => ClinicScreen(),
-      },
-    );
+  void main() async {
+    WidgetsFlutterBinding.ensureInitialized(); // 🔹 Garante que os bindings do Flutter são inicializados
+    SharedPreferences prefs = await SharedPreferences.getInstance(); // 🔹 Inicializa antes de rodar a aplicação
+    runApp(const VetManagerApp());
   }
-}
+
+  class VetManagerApp extends StatelessWidget {
+    const VetManagerApp({Key? key}) : super(key: key);
+
+    @override
+    Widget build(BuildContext context) {
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(primarySwatch: Colors.teal),
+        initialRoute: '/',
+        routes: {
+          '/': (context) => const WelcomeScreen(),
+          '/login': (context) => const LoginScreen(),
+          '/register': (context) => const RegisterScreen(),
+          '/launcher': (context) => LauncherScreen(),
+          '/maps': (context) => MapsScreen(),
+          '/user': (context) => UserProfileScreen(),
+          '/cadastro_pet': (context) => CadastroPetScreen(),
+          '/clinica': (context) => ClinicScreen(),
+        },
+      );
+    }
+  }

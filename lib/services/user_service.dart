@@ -6,7 +6,7 @@ import 'package:vet_manager/models/user.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 
 class UserService {
-  static const String _baseUrl = 'http://localhost:3000/users';
+  static const String _baseUrl = 'https://vetmanager-cvof.onrender.com/users';
 
   Future<bool> registerUser({
     required String nomeUsuario,
@@ -15,30 +15,44 @@ class UserService {
     required String cpfUsuario,
   }) async {
     final Map<String, dynamic> userData = {
-      'cpf_usuario': cpfUsuario,
-      'nome_usuario': nomeUsuario,
-      'email_usuario': emailUsuario,
+      'nome_usuario': nomeUsuario.trim(),
+      'email_usuario': emailUsuario.trim().toLowerCase(),
       'senha_usuario': senhaUsuario,
+      'foto_usuario': "null", // Changed from empty string to null as it might be expected by the server
+      'cpf': cpfUsuario.replaceAll(RegExp(r'[^\d]'), ''), // Remove non-digits from CPF
     };
 
     try {
+      print('Sending registration request with data: ${json.encode(userData)}');
+      
       final response = await http.post(
         Uri.parse('$_baseUrl/cadastro'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
         body: json.encode(userData),
       );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
 
       if (response.statusCode == 201) {
         return true;
       } else if (response.statusCode == 409) {
         throw Exception('Usuário já existe');
       } else if (response.statusCode == 400) {
-        throw Exception('Dados de entrada inválidos');
+        final errorBody = json.decode(response.body);
+        throw Exception('Dados de entrada inválidos: ${errorBody['message'] ?? response.body}');
       } else {
-        throw Exception('Erro ao cadastrar usuário');
+        throw Exception('Erro ao cadastrar usuário: ${response.body}');
       }
     } catch (e) {
-      throw Exception('Erro de conexão: $e');
+      print('Registration error: $e');
+      if (e is FormatException) {
+        throw Exception('Erro ao processar resposta do servidor');
+      }
+      rethrow;
     }
   }
 
@@ -60,18 +74,23 @@ class UserService {
       );
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+
+        final Map<String, dynamic> data = json.decode(response.body);
+
+         // Extrai o token do JSON
         String token = data["token"];
 
+        print("token: $token");
+      
         // 🔹 **Salvar apenas o token**
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString("token", token);
 
-        // 🔍 **Verifica se o token contém o ID**
-        int? userId = await getUserIdFromToken();
-        if (userId == null) {
-          throw Exception("Token inválido: ID do usuário não encontrado.");
+   
+        if (token == null) {
+          throw Exception("Token inválido: token não encontrado.");
         }
+          
 
         return true;
       } else if (response.statusCode == 401) {
@@ -128,29 +147,39 @@ Future<int?> getUserIdFromToken() async {
 
 
  Future<bool> uploadProfilePicture(File imageFile) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString("token");
-    int? userId = prefs.getInt("userId");
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? token = prefs.getString("token");
+  
+  if (token == null) {
+    throw Exception("Usuário não está logado.");
+  }
 
-    if (token == null || userId == null) {
-      throw Exception("Usuário não está logado.");
-    }
+  int? userId = await getUserIdFromToken();
+  if (userId == null) {
+    throw Exception("ID do usuário não encontrado no token.");
+  }
 
-    var request = http.MultipartRequest(
-      'POST',
-      Uri.parse("$_baseUrl/$userId/uploadPhoto"),
-    );
+  var request = http.MultipartRequest(
+    'POST',
+    Uri.parse("$_baseUrl/$userId/uploadPhoto"),
+  );
 
-    request.headers['Authorization'] = "Bearer $token";
-    request.files.add(await http.MultipartFile.fromPath('file', imageFile.path));
+  request.headers['Authorization'] = "Bearer $token";
+  request.headers['Content-Type'] = 'multipart/form-data';
+  request.files.add(await http.MultipartFile.fromPath('file', imageFile.path));
 
-    var response = await request.send();
+  try {
+    var streamedResponse = await request.send();
+    var response = await http.Response.fromStream(streamedResponse);
 
     if (response.statusCode == 200) {
-      return true;
+    return true;
     } else {
-      throw Exception("Erro ao enviar imagem: ${response.statusCode}");
+    throw Exception("Erro ao enviar imagem. Código: ${response.statusCode}, Mensagem: ${response.body}");
     }
+  } catch (e) {
+    throw Exception("Erro durante o upload da imagem: $e");
+  }
   }
 
 
