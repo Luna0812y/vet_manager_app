@@ -16,8 +16,10 @@ class _LoginScreenState extends State<LoginScreen> {
     double screenWidth = MediaQuery.of(context).size.width; // Largura da tela
     double screenHeight = MediaQuery.of(context).size.height; // Altura da tela
 
-    double buttonWidth = screenWidth * 0.8; // Botão ocupa 80% da largura da tela
-    double buttonHeight = screenHeight * 0.1; // Botão ocupa 10% da altura da tela
+    double buttonWidth =
+        screenWidth * 0.8; // Botão ocupa 80% da largura da tela
+    double buttonHeight =
+        screenHeight * 0.1; // Botão ocupa 10% da altura da tela
 
     return Scaffold(
       appBar: AppBar(
@@ -32,13 +34,16 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.start, // Alinha ao topo da tela
+            mainAxisAlignment:
+                MainAxisAlignment.start, // Alinha ao topo da tela
             children: [
               // Logo centralizada
               Align(
-                alignment: Alignment.topRight, // Alinha no canto superior direito
+                alignment:
+                    Alignment.topRight, // Alinha no canto superior direito
                 child: Padding(
-                  padding: const EdgeInsets.all(16.0), // Padding para afastar da borda
+                  padding: const EdgeInsets.all(
+                      16.0), // Padding para afastar da borda
                   child: Image.asset('assets/images/logo.png', height: 120),
                 ),
               ),
@@ -59,16 +64,17 @@ class _LoginScreenState extends State<LoginScreen> {
               // Campos de entrada com largura ajustada
               const TextField(
                 decoration: InputDecoration(
-                  labelText: 'Enter your email',
+                  labelText: 'Digite seu email',
                   border: OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 16),
               // Campo de senha com "olho" para alternar a visibilidade
               TextField(
-                obscureText: _obscureText, // Controla se a senha está oculta ou não
+                obscureText:
+                    _obscureText, // Controla se a senha está oculta ou não
                 decoration: InputDecoration(
-                  labelText: 'Enter your password',
+                  labelText: 'Digite sua senha',
                   border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
                     icon: Icon(
@@ -78,7 +84,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     onPressed: () {
                       setState(() {
-                        _obscureText = !_obscureText; // Alterna a visibilidade da senha
+                        _obscureText =
+                            !_obscureText; // Alterna a visibilidade da senha
                       });
                     },
                   ),
@@ -91,7 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: () {},
-                  child: const Text('Forgot Password?'),
+                  child: const Text('Esqueceu sua senha?'),
                 ),
               ),
 
@@ -103,10 +110,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 height: buttonHeight, // Altura proporcional ao tamanho da tela
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    foregroundColor: const Color.fromARGB(255, 255, 255, 255), // Cor da letra
-                    backgroundColor: const Color.fromARGB(255, 0, 0, 0), // Cor de fundo quando o botão está ativo
+                    foregroundColor: const Color.fromARGB(
+                        255, 255, 255, 255), // Cor da letra
+                    backgroundColor: const Color.fromARGB(
+                        255, 0, 0, 0), // Cor de fundo quando o botão está ativo
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.zero, // Bordas retas (sem arredondamento)
+                      borderRadius: BorderRadius
+                          .zero, // Bordas retas (sem arredondamento)
                       side: BorderSide(
                         color: Colors.black, // Cor da borda
                         width: 2, // Largura da borda
@@ -117,7 +127,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     ' Login ',
                     style: TextStyle(
                       fontSize: 17, // Tamanho da fonte
-                      fontFamily: 'Roboto', // Fonte (pode ser qualquer fonte disponível)
+                      fontFamily:
+                          'Roboto', // Fonte (pode ser qualquer fonte disponível)
                       fontWeight: FontWeight.bold, // Peso da fonte
                     ),
                   ),
