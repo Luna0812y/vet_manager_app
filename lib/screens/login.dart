@@ -78,12 +78,12 @@ class _LoginScreenState extends State<LoginScreen> {
         child: SingleChildScrollView(
           child: ConstrainedBox(
             constraints: BoxConstraints(
-              minHeight: MediaQuery.of(context).size.height, 
+              minHeight: MediaQuery.of(context).size.height,
             ),
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
-                mainAxisSize: MainAxisSize.min, 
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Align(
@@ -108,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   TextField(
                     controller: _emailController,
                     decoration: const InputDecoration(
-                      labelText: 'Enter your email',
+                      labelText: 'Digite seu email',
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -117,11 +117,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     controller: _passwordController,
                     obscureText: _obscureText,
                     decoration: InputDecoration(
-                      labelText: 'Enter your password',
+                      labelText: 'Digite sua senha',
                       border: const OutlineInputBorder(),
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscureText ? Icons.visibility : Icons.visibility_off,
+                          _obscureText
+                              ? Icons.visibility
+                              : Icons.visibility_off,
                           color: Colors.blue,
                         ),
                         onPressed: () {
@@ -137,7 +139,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: () {},
-                      child: const Text('Forgot Password?'),
+                      child: const Text('Esqueceu sua senha?'),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -147,31 +149,42 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _login,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(255, 2, 255, 103)
-                      ),
+                          backgroundColor:
+                              const Color.fromARGB(255, 2, 255, 103)),
                       child: _isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
                           : const Text(
                               'Login',
                               style: TextStyle(
-                                fontSize: 19,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white
-                              ),
+                                  fontSize: 19,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white),
                             ),
-                            
                     ),
                   ),
                   const SizedBox(height: 20),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/register');
-                    },
-                    child: const Text(
-                      "Não possui uma conta? Cadastre-se aqui",
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        "Não possui uma conta?",
+                        style: TextStyle(fontSize: 20, color: Colors.black),
+                      ),
+                      InkWell(
+                        onTap: () {
+                          Navigator.pushNamed(context, "/register");
+                        },
+                        child: const Text(
+                          " Cadastre-se.",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                      )
+                    ],
+                  )
                 ],
               ),
             ),

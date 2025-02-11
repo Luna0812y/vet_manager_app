@@ -77,13 +77,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
             children: [
               _buildTextField(_nameController, 'Nome completo'),
               _buildTextField(_emailController, 'Email'),
-              _buildTextField(_cpfController, 'CPF', keyboardType: TextInputType.number),
+              _buildTextField(_cpfController, 'CPF',
+                  keyboardType: TextInputType.number),
               _buildTextField(_passwordController, 'Senha', obscureText: true),
-              _buildTextField(_confirmPasswordController, 'Confirmar senha', obscureText: true),
+              _buildTextField(_confirmPasswordController, 'Confirmar senha',
+                  obscureText: true),
               const SizedBox(height: 20),
               _buildRegisterButton(),
               TextButton(
-                onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+                onPressed: () =>
+                    Navigator.pushReplacementNamed(context, '/login'),
                 child: const Text('Já possui uma conta? Faça login aqui.'),
               ),
             ],
@@ -94,14 +97,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Widget _buildTextField(TextEditingController controller, String label,
-      {bool obscureText = false, TextInputType keyboardType = TextInputType.text}) {
+      {bool obscureText = false,
+      TextInputType keyboardType = TextInputType.text}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextField(
         controller: controller,
         obscureText: obscureText,
         keyboardType: keyboardType,
-        decoration: InputDecoration(labelText: label, border: OutlineInputBorder()),
+        decoration:
+            InputDecoration(labelText: label, border: OutlineInputBorder()),
       ),
     );
   }
@@ -111,12 +116,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
       width: double.infinity,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color.fromARGB(255, 2, 255, 103)
-        ),
+            backgroundColor: const Color.fromARGB(255, 2, 255, 103)),
         onPressed: _isLoading ? null : _register,
         child: _isLoading
             ? const CircularProgressIndicator(color: Colors.white)
-            : const Text('Cadastrar', style: TextStyle(fontSize: 19, color: Colors.white, fontWeight:FontWeight.bold)),
+            : const Text('Cadastrar',
+                style: TextStyle(
+                    fontSize: 19,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold)),
       ),
     );
   }

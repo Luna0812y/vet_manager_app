@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:vet_manager/clinica/clinica.dart';
 import 'package:vet_manager/pet/cadastro_pet.dart';
 import 'package:vet_manager/screens/agendamento.dart';
 import 'package:vet_manager/services/env_service.dart';
@@ -11,8 +10,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'screens/cadastro.dart';
 import 'screens/inicio.dart';
 import 'screens/login.dart';
-
-import 'localizar/maps.dart';
 
 void main() async {
   WidgetsFlutterBinding
@@ -39,12 +36,9 @@ class VetManagerApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
         '/launcher': (context) => LauncherScreen(),
-        '/maps': (context) => MapsScreen(),
         '/user': (context) => UserProfileScreen(),
         '/cadastro_pet': (context) => CadastroPetScreen(),
-        '/clinica': (context) => ClinicScreen(),
         '/agendamentos': (context) => AgendamentosScreen(),
-
       },
     );
   }

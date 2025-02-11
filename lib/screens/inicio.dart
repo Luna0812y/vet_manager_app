@@ -8,13 +8,15 @@ class WelcomeScreen extends StatelessWidget {
     double screenWidth = MediaQuery.of(context).size.width; // Largura da tela
     double screenHeight = MediaQuery.of(context).size.height; // Altura da tela
 
-    double buttonWidth = screenWidth * 0.8; // Botão ocupa 80% da largura da tela
-    double buttonHeight = screenHeight * 0.1; // Botão ocupa 10% da altura da tela
+    double buttonWidth =
+        screenWidth * 0.8; // Botão ocupa 80% da largura da tela
+    double buttonHeight =
+        screenHeight * 0.1; // Botão ocupa 10% da altura da tela
 
     return Scaffold(
       body: Column(
         children: [
-          const SizedBox(height: 30), 
+          const SizedBox(height: 30),
           // Parte superior: LOGO e TÍTULO centralizados
           Align(
             alignment: Alignment.topCenter,
@@ -30,25 +32,30 @@ class WelcomeScreen extends StatelessWidget {
               ],
             ),
           ),
-          
+
           // Spacer para empurrar os botões para a parte inferior
           Spacer(), // Empurra o conteúdo para baixo
 
           // Parte inferior: Botões centralizados
           Center(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center, // Centraliza os botões
+              mainAxisAlignment:
+                  MainAxisAlignment.center, // Centraliza os botões
               children: [
                 // Botão Login
                 SizedBox(
                   width: buttonWidth, // Largura proporcional ao tamanho da tela
-                  height: buttonHeight, // Altura proporcional ao tamanho da tela
+                  height:
+                      buttonHeight, // Altura proporcional ao tamanho da tela
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      foregroundColor: const Color.fromARGB(255, 19, 12, 12), // Cor da letra
-                      backgroundColor: const Color.fromARGB(255, 255, 255, 255), // Cor de fundo quando o botão está ativo
+                      foregroundColor:
+                          const Color.fromARGB(255, 19, 12, 12), // Cor da letra
+                      backgroundColor: const Color.fromARGB(255, 255, 255,
+                          255), // Cor de fundo quando o botão está ativo
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.zero, // Bordas retas (sem arredondamento)
+                        borderRadius: BorderRadius
+                            .zero, // Bordas retas (sem arredondamento)
                         side: BorderSide(
                           color: Colors.black, // Cor da borda
                           width: 2, // Largura da borda
@@ -59,7 +66,8 @@ class WelcomeScreen extends StatelessWidget {
                       ' Login ',
                       style: TextStyle(
                         fontSize: 17, // Tamanho da fonte
-                        fontFamily: 'Roboto', // Fonte (pode ser qualquer fonte disponível)
+                        fontFamily:
+                            'Roboto', // Fonte (pode ser qualquer fonte disponível)
                         fontWeight: FontWeight.bold, // Peso da fonte
                       ),
                     ),
@@ -86,7 +94,7 @@ class WelcomeScreen extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      ' Registrar ',
+                      ' Cadastro',
                       style: TextStyle(
                         fontSize: 17,
                         fontFamily: 'Roboto',
