@@ -19,9 +19,12 @@ class UserService {
       'nome_usuario': nomeUsuario.trim(),
       'email_usuario': emailUsuario.trim().toLowerCase(),
       'senha_usuario': senhaUsuario,
-      'foto_usuario': null, // Ajustado para null
-      'cpf': cpfUsuario.replaceAll(RegExp(r'[^\d]'), ''), // Remove caracteres não numéricos
+      'foto_usuario': "string", // 🔹 Forçar valor padrão
+      'cpf': cpfUsuario.replaceAll(RegExp(r'[^\d]'), ''),
     };
+
+    // Log dos dados antes do envio
+    print("🔹 Enviando para API: $userData");
 
     try {
       final response = await http.post(
@@ -33,13 +36,15 @@ class UserService {
         body: json.encode(userData),
       );
 
+      print("🔹 Resposta da API: ${response.statusCode} - ${response.body}");
+
       if (response.statusCode == 201) {
         return true;
       } else if (response.statusCode == 409) {
         throw Exception('Usuário já existe');
       } else if (response.statusCode == 400) {
-        final errorBody = json.decode(response.body);
-        throw Exception('Dados de entrada inválidos: ${errorBody['message'] ?? response.body}');
+        print("🔴 ERRO 400: ${response.body}");
+        throw Exception('Dados inválidos: ${response.body}');
       } else {
         throw Exception('Erro ao cadastrar usuário: ${response.body}');
       }
@@ -104,7 +109,7 @@ class UserService {
 
       // Acessando o ID corretamente
       int? userId = decodedToken["id"];
-      
+
       if (userId == null) {
         print("⚠️ ID do usuário não encontrado no token.");
         return null;
@@ -116,8 +121,6 @@ class UserService {
       return null;
     }
   }
-
-
 
   /// 🔹 **Busca os dados do usuário pelo ID**
   Future<User> fetchUserData() async {
@@ -140,10 +143,10 @@ class UserService {
       final Map<String, dynamic> data = json.decode(response.body);
       return User.fromMap(data);
     } else {
-      throw Exception("Erro ao buscar dados do usuário. Código: ${response.statusCode}");
+      throw Exception(
+          "Erro ao buscar dados do usuário. Código: ${response.statusCode}");
     }
   }
-
 
   /// 🔹 **Faz upload da foto de perfil do usuário**
   Future<bool> uploadProfilePicture(File imageFile) async {
@@ -165,7 +168,8 @@ class UserService {
     );
 
     request.headers['Authorization'] = "Bearer $token";
-    request.files.add(await http.MultipartFile.fromPath('file', imageFile.path));
+    request.files
+        .add(await http.MultipartFile.fromPath('file', imageFile.path));
 
     try {
       var streamedResponse = await request.send();
@@ -174,7 +178,8 @@ class UserService {
       if (response.statusCode == 200) {
         return true;
       } else {
-        throw Exception("Erro ao enviar imagem. Código: ${response.statusCode}, Mensagem: ${response.body}");
+        throw Exception(
+            "Erro ao enviar imagem. Código: ${response.statusCode}, Mensagem: ${response.body}");
       }
     } catch (e) {
       throw Exception("Erro durante o upload da imagem: $e");
@@ -185,6 +190,4 @@ class UserService {
   Future<int?> getUserId() async {
     return getUserIdFromToken();
   }
-
-
 }

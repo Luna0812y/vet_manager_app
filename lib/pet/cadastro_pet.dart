@@ -1,9 +1,11 @@
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:vet_manager/screens/pets.dart';
 import 'dart:async';
 import 'dart:io';
+
+import 'package:vet_manager/services/pet_service.dart';
 
 class CadastroPetScreen extends StatefulWidget {
   @override
@@ -11,84 +13,28 @@ class CadastroPetScreen extends StatefulWidget {
 }
 
 class _CadastroPetScreenState extends State<CadastroPetScreen> {
+  final PetService _petService = PetService();
+
   int _currentStep = 0;
-  String? _selectedType;
-  String? _selectedBreed;
-  String? _selectedSize;
-  double _selectedWeight = 10.0;
-  DateTime? _birthDate;
+
+  String? _selectedType; // especie_pet
+  String? _selectedBreed; // raca_pet (agora será preenchido pelo usuário)
+  String?
+      _selectedSize; // altura_pet (vou mapear os tamanhos para valores numéricos)
+  double _selectedWeight = 10.0; // peso_pet
   File? _petPhoto;
-  String? _petGender;
-  final _nameController = TextEditingController();
-  DateTime? _selectedDate;
+  String? _petGender; // sexo_pet
 
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate ?? DateTime.now(),
-      firstDate: DateTime(1900), // Data mínima
-      lastDate: DateTime.now(),  // Data máxima
-    );
-    if (picked != null && picked != _selectedDate) {
-      setState(() {
-        _selectedDate = picked;
-      });
-    }
-  }
-
-  Map<String, List<String>> _breedsByType = {
-    "Cachorro": [],
-    "Gato": [],
-    "Coelho": [],
-  };
+  final TextEditingController _nameController =
+      TextEditingController(); // nome_pet
+  final TextEditingController _breedController =
+      TextEditingController(); // Novo controlador para raça
 
   @override
   void initState() {
     super.initState();
-    _loadBreeds();
+    // Não precisamos mais carregar as raças, já que o usuário irá digitar
   }
-
-  Future<void> _loadBreeds() async {
-    try {
-      // Carrega o conteúdo do arquivo
-      final data = await rootBundle.loadString('assets//breeds.txt');
-      final lines = data.split('\n');
-
-      // Inicializa o mapa para armazenar as raças
-      Map<String, List<String>> breedsByType = {
-        "Cachorro": [],
-        "Gato": [],
-        "Coelho": []
-      };
-
-      // Processa cada linha do arquivo
-      for (var line in lines) {
-        // Remove espaços extras
-        line = line.trim();
-
-        if (line.startsWith("Cachorro:")) {
-          breedsByType["Cachorro"]?.add(line.replaceFirst("Cachorro: ", "").trim());
-        } else if (line.startsWith("Gato:")) {
-          breedsByType["Gato"]?.add(line.replaceFirst("Gato: ", "").trim());
-        } else if (line.startsWith("Coelho:")) {
-          breedsByType["Coelho"]?.add(line.replaceFirst("Coelho: ", "").trim());
-        }
-      }
-
-      // Atualiza o estado com as raças carregadas
-      setState(() {
-        _breedsByType = breedsByType;
-      });
-
-      // Depuração: verifica se as raças foram carregadas
-      print("Raças carregadas: $_breedsByType");
-    } catch (e) {
-      // Depuração: mostra o erro caso algo dê errado
-      print("Erro ao carregar raças: $e");
-    }
-  }
-
-
 
   Future<void> _pickPetPhoto() async {
     final picker = ImagePicker();
@@ -99,6 +45,84 @@ class _CadastroPetScreenState extends State<CadastroPetScreen> {
         _petPhoto = File(pickedFile.path);
       });
     }
+  }
+
+  // Método para enviar os dados do pet para a API
+  // Método para enviar os dados do pet para a API
+  Future<void> _submitPet() async {
+    // Valida os campos obrigatórios
+    if (_nameController.text.isEmpty ||
+        _selectedType == null ||
+        _breedController.text.isEmpty ||
+        _selectedSize == null ||
+        _petGender == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Por favor, preencha todos os campos obrigatórios.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Prepara os dados para enviar
+    String name = _nameController.text.trim(); // nome_pet
+    String breed = _selectedType!; // especie_pet
+    String raca = _breedController.text.trim(); // raca_pet
+
+    // Converter o tamanho selecionado para uma altura numérica (int)
+    int altura;
+    if (_selectedSize == 'Pequeno') {
+      altura = 30; // Altura em cm para pequeno (exemplo)
+    } else if (_selectedSize == 'Médio') {
+      altura = 50; // Altura em cm para médio (exemplo)
+    } else {
+      altura = 70; // Altura em cm para grande (exemplo)
+    }
+
+    // O peso já é um double, não precisa converter para string
+    double peso = _selectedWeight; // peso_pet
+
+    // Mapear o sexo para 'M' ou 'F'
+    String sexo;
+    if (_petGender == 'Macho') {
+      sexo = 'M';
+    } else {
+      sexo = 'F';
+    }
+
+    // Chama o método addPet do PetService
+    bool success = await _petService.addPet(
+      name: name,
+      breed: breed,
+      raca: raca,
+      altura: altura,
+      peso: peso,
+      sexo: sexo,
+    );
+
+    // Tratar a resposta
+    if (success) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => PetListScreen()),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Falha ao cadastrar pet. Tente novamente.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    // Dispose dos controladores para evitar vazamentos de memória
+    _nameController.dispose();
+    _breedController.dispose();
+    super.dispose();
   }
 
   @override
@@ -113,22 +137,20 @@ class _CadastroPetScreenState extends State<CadastroPetScreen> {
         onStepContinue: () {
           if (_currentStep == 0 && _selectedType == null) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("Por favor, escolha o tipo do animal primeiro.")),
+              SnackBar(
+                content: Text("Por favor, escolha o tipo do animal primeiro."),
+              ),
             );
             return;
           }
 
-          if (_currentStep < 5) {
+          if (_currentStep < 4) {
             setState(() {
               _currentStep++;
             });
           } else {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ConfirmacaoCadastroScreen(),
-              ),
-            );
+            // Chama o método para enviar os dados
+            _submitPet();
           }
         },
         onStepCancel: () {
@@ -141,44 +163,40 @@ class _CadastroPetScreenState extends State<CadastroPetScreen> {
         steps: [
           Step(
             title: Text("Escolha o tipo"),
-            subtitle: Text("Step 1 / 6"),
+            subtitle: Text("Passo 1 de 5"),
             content: _buildTypeSelection(),
             isActive: _currentStep >= 0,
           ),
           Step(
-            title: Text("Escolha a raça"),
-            subtitle: Text("Step 2 / 6"),
-            content: _buildBreedSelection(),
+            title: Text("Adicione a raça"),
+            subtitle: Text("Passo 2 de 5"),
+            content: _buildBreedInput(),
             isActive: _currentStep >= 1,
           ),
           Step(
             title: Text("Escolha o tamanho"),
-            subtitle: Text("Step 3 / 6"),
+            subtitle: Text("Passo 3 de 5"),
             content: _buildSizeSelection(),
             isActive: _currentStep >= 2,
           ),
           Step(
             title: Text("Escolha o peso"),
-            subtitle: Text("Step 4 / 6"),
+            subtitle: Text("Passo 4 de 5"),
             content: _buildWeightSelection(),
             isActive: _currentStep >= 3,
           ),
           Step(
-            title: Text("Selecione a data de nascimento"),
-            subtitle: Text("Step 5 / 6"),
-            content: _buildBirthdaySelection(),
-            isActive: _currentStep >= 4,
-          ),
-          Step(
             title: Text("Adicione os dados do pet"),
-            subtitle: Text("Step 6 / 6"),
+            subtitle: Text("Passo 5 de 5"),
             content: _buildPetBaseData(),
-            isActive: _currentStep >= 5,
+            isActive: _currentStep >= 4,
           ),
         ],
       ),
     );
   }
+
+  // Widgets atualizados:
 
   Widget _buildTypeSelection() {
     final petTypes = [
@@ -210,9 +228,8 @@ class _CadastroPetScreenState extends State<CadastroPetScreen> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: _selectedType == pet["name"]
-                      ? Colors.teal
-                      : Colors.black,
+                  color:
+                      _selectedType == pet["name"] ? Colors.teal : Colors.black,
                 ),
               ),
               SizedBox(height: 8),
@@ -222,7 +239,9 @@ class _CadastroPetScreenState extends State<CadastroPetScreen> {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: _selectedType == pet["name"] ? Colors.teal : Colors.grey,
+                    color: _selectedType == pet["name"]
+                        ? Colors.teal
+                        : Colors.grey,
                     width: 2,
                   ),
                 ),
@@ -244,100 +263,74 @@ class _CadastroPetScreenState extends State<CadastroPetScreen> {
     );
   }
 
-  Widget _buildBreedSelection() {
-    List<String> allBreeds = [];
-    _breedsByType.forEach((key, value) {
-      allBreeds.addAll(value);
-    });
+  // Substituímos a seleção de raça por um campo de entrada de texto
 
-    allBreeds.sort(); // Ordena todas as raças para facilitar a busca.
+  Widget _buildBreedInput() {
+    if (_selectedType == null) {
+      return Text("Por favor, selecione o tipo do animal primeiro.");
+    }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TextField(
-          decoration: InputDecoration(
-            labelText: "Pesquisar raça",
-            prefixIcon: Icon(Icons.search),
-            border: OutlineInputBorder(),
-          ),
-          onChanged: (query) {
-            setState(() {
-              // Filtra as raças de acordo com o texto inserido.
-              allBreeds = _breedsByType.values
-                  .expand((breeds) => breeds)
-                  .where((breed) => breed.toLowerCase().contains(query.toLowerCase()))
-                  .toList();
-            });
-          },
-        ),
-        SizedBox(height: 16),
-        if (allBreeds.isEmpty)
-          Center(
-            child: Text(
-              "Nenhuma raça encontrada.",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          )
-        else
-          Expanded(
-            child: ListView.builder(
-              itemCount: allBreeds.length,
-              itemBuilder: (context, index) {
-                final breed = allBreeds[index];
-                return ListTile(
-                  title: Text(breed),
-                  onTap: () {
-                    setState(() {
-                      _selectedBreed = breed;
-                    });
-                  },
-                  selected: _selectedBreed == breed,
-                  selectedTileColor: Colors.teal.withOpacity(0.1),
-                );
-              },
-            ),
-          ),
-      ],
+    return TextField(
+      controller: _breedController,
+      decoration: InputDecoration(
+        labelText: "Raça do Pet",
+        border: OutlineInputBorder(),
+      ),
     );
   }
 
   Widget _buildSizeSelection() {
     final sizes = [
-      {"name": "Pequeno", "subtitle": "under 14kg", "icon": Icons.pets, "size": 24.0},
-      {"name": "Grande", "subtitle": "over 25kg", "icon": Icons.pets, "size": 40.0},
-      {"name": "Médio", "subtitle": "14-25kg", "icon": Icons.pets, "size": 32.0},
+      {
+        "name": "Pequeno",
+        "subtitle": "menos de 14kg",
+        "icon": Icons.pets,
+        "size": 24.0
+      },
+      {
+        "name": "Grande",
+        "subtitle": "mais de 25kg",
+        "icon": Icons.pets,
+        "size": 40.0
+      },
+      {
+        "name": "Médio",
+        "subtitle": "14-25kg",
+        "icon": Icons.pets,
+        "size": 32.0
+      },
     ];
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: sizes.map(
         (size) {
-          final isSelected = _selectedSize == size["name"] as String; // Cast explícito para String
+          final isSelected = _selectedSize == size["name"];
           return GestureDetector(
             onTap: () {
               setState(() {
-                _selectedSize = size["name"] as String; // Cast explícito para String
+                _selectedSize = size["name"] as String;
               });
             },
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  size["icon"] as IconData, // Cast explícito para IconData
-                  size: size["size"] as double, // Cast explícito para double
+                  size["icon"] as IconData,
+                  size: size["size"] as double,
                   color: isSelected ? Colors.blue : Colors.grey,
                 ),
                 SizedBox(height: 8),
                 Text(
-                  size["name"] as String, // Cast explícito para String
+                  size["name"] as String,
                   style: TextStyle(
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    fontWeight:
+                        isSelected ? FontWeight.bold : FontWeight.normal,
                     color: isSelected ? Colors.blue : Colors.black,
                   ),
                 ),
                 Text(
-                  size["subtitle"] as String, // Cast explícito para String
+                  size["subtitle"] as String,
                   style: TextStyle(
                     fontSize: 12,
                     color: isSelected ? Colors.blue : Colors.grey,
@@ -371,45 +364,6 @@ class _CadastroPetScreenState extends State<CadastroPetScreen> {
     );
   }
 
-  Widget _buildBirthdaySelection() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          "Selecione a data de aniversário",
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        SizedBox(height: 16),
-        CalendarDatePicker(
-          initialDate: _birthDate ?? DateTime.now(),
-          firstDate: DateTime(1900), // Permite datas desde 1900
-          lastDate: DateTime.now(),  // Restringe a data máxima para hoje
-          onDateChanged: (DateTime date) {
-            setState(() {
-              _birthDate = date;
-            });
-          },
-        ),
-        SizedBox(height: 16),
-        if (_birthDate != null)
-          Text(
-            "Você selecionou: ${DateFormat('dd/MM/yyyy').format(_birthDate!)}",
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.black54,
-            ),
-            textAlign: TextAlign.center,
-          ),
-      ],
-    );
-  }
-
   Widget _buildPetBaseData() {
     return Column(
       children: [
@@ -417,11 +371,8 @@ class _CadastroPetScreenState extends State<CadastroPetScreen> {
           onTap: _pickPetPhoto,
           child: CircleAvatar(
             radius: 60,
-            backgroundImage:
-                _petPhoto != null ? FileImage(_petPhoto!) : null,
-            child: _petPhoto == null
-                ? Icon(Icons.add_a_photo, size: 40)
-                : null,
+            backgroundImage: _petPhoto != null ? FileImage(_petPhoto!) : null,
+            child: _petPhoto == null ? Icon(Icons.add_a_photo, size: 40) : null,
           ),
         ),
         SizedBox(height: 10),
@@ -463,32 +414,6 @@ class _CadastroPetScreenState extends State<CadastroPetScreen> {
           SizedBox(height: 5),
           Text(gender),
         ],
-      ),
-    );
-  }
-}
-
-class ConfirmacaoCadastroScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Cadastro Concluído"),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text("Seu pet foi cadastrado com sucesso!"),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/user');
-              },
-              child: Text("Voltar para a tela inicial"),
-            ),
-          ],
-        ),
       ),
     );
   }

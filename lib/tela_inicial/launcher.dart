@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vet_manager/screens/agendamento.dart';
 import 'package:vet_manager/screens/clinicas.dart';
+import 'package:vet_manager/screens/pets.dart';
 import 'package:vet_manager/screens/profile_screen.dart';
-import 'package:vet_manager/widgets/clinica_card.dart';
+import 'package:vet_manager/tela_inicial/avaliar.dart';
 import 'package:vet_manager/services/clinica_service.dart';
 import 'package:vet_manager/services/user_service.dart';
-import 'dart:io';
-import 'avaliar.dart';
-import 'package:http/http.dart' as http;
+import 'package:vet_manager/widgets/clinica_card.dart';
 
 class LauncherScreen extends StatefulWidget {
   @override
@@ -17,7 +14,6 @@ class LauncherScreen extends StatefulWidget {
 }
 
 class _LauncherScreenState extends State<LauncherScreen> {
-  File? _selectedImage;
   int _selectedIndex = 0;
   final ClinicaService _clinicaService = ClinicaService();
   final UserService _userService = UserService();
@@ -33,20 +29,10 @@ class _LauncherScreenState extends State<LauncherScreen> {
     _loadUserId();
   }
 
-  loadInfoClinica() {}
-
   Future<void> _loadClinicas() async {
     try {
       List<Map<String, dynamic>> clinicas =
           await _clinicaService.fetchClinics();
-
-      print("NOOOME DA CLINICA:  $clinicas");
-      print("NOOOME DA CLINICA 2:  $_clinicas");
-      print("NOOOME DA CLINICA 3:  ${clinicas[0]["endereco_clinica"]}");
-
-      print("clinica 1: ${clinicas[0]["nome_clinica"]}\n");
-
-      setState(() {});
       setState(() {
         _clinicas = clinicas;
         _isLoading = false;
@@ -74,17 +60,6 @@ class _LauncherScreenState extends State<LauncherScreen> {
     }
   }
 
-
-  Future<void> _pickImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      setState(() {
-        _selectedImage = File(image.path);
-      });
-    }
-  }
-
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -95,21 +70,23 @@ class _LauncherScreenState extends State<LauncherScreen> {
         Navigator.pushReplacementNamed(context, '/launcher');
         break;
       case 1:
-        Navigator.push(context, MaterialPageRoute(builder: (context) => ClinicasScreen()));
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => ClinicasScreen()));
         break;
       case 2:
-        Navigator.pushReplacementNamed(context, '/pet');
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => PetListScreen()));
         break;
       case 3:
-        Navigator.push(context, MaterialPageRoute(builder: (context) => AgendamentosScreen()));
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => AgendamentosScreen()));
         break;
       case 4:
-        Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileScreen()));
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => ProfileScreen()));
         break;
     }
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -122,69 +99,36 @@ class _LauncherScreenState extends State<LauncherScreen> {
         toolbarHeight: 0,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            // Banner de Cabeçalho
             Container(
               width: double.infinity,
+              height: 180,
               decoration: BoxDecoration(
-                color: Colors.teal,
-                borderRadius:
-                    BorderRadius.vertical(bottom: Radius.circular(20)),
+                image: DecorationImage(
+                  image: AssetImage('assets/images/banner.jpg'),
+                  fit: BoxFit.cover,
+                ),
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    GestureDetector(
-                      onTap: _pickImage,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(50),
-                        child: _selectedImage != null
-                            ? Image.file(
-                                _selectedImage!,
-                                height: 120,
-                                width: 120,
-                                fit: BoxFit.cover,
-                              )
-                            : Container(
-                                height: 120,
-                                width: 120,
-                                color: Colors.grey[300],
-                                child: Icon(
-                                  Icons.add_a_photo,
-                                  color: Colors.grey[700],
-                                ),
-                              ),
-                      ),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.teal.withOpacity(0.7),
+                ),
+                child: Center(
+                  child: Text(
+                    'Bem-vindo ao Vet Manager',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
                     ),
-                    SizedBox(width: 16),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Meu Pet',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          '12 minutes',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
             SizedBox(height: 16),
+            // Seção de Clínicas
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Align(
@@ -192,66 +136,65 @@ class _LauncherScreenState extends State<LauncherScreen> {
                 child: Text(
                   'Clínicas mais bem avaliadas',
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 22,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
             ),
             SizedBox(height: 8),
-
-            // Exibição dinâmica das clínicas
-            Container(
-              height: screenHeight * 0.3,
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
               child: _isLoading
-                  ? Center(
-                      child:
-                          CircularProgressIndicator()) // Mostra um indicador de carregamento
+                  ? Center(child: CircularProgressIndicator())
                   : _errorMessage.isNotEmpty
-                      ? Center(
-                          child: Text(_errorMessage)) // Exibe erro caso ocorra
+                      ? Center(child: Text(_errorMessage))
                       : _clinicas.isEmpty
                           ? Center(child: Text("Nenhuma clínica encontrada."))
-                          : ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              padding: EdgeInsets.symmetric(horizontal: 16),
+                          : GridView.builder(
+                              shrinkWrap: true,
+                              physics: NeverScrollableScrollPhysics(),
+                              gridDelegate:
+                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                childAspectRatio: 0.8,
+                                crossAxisSpacing: 16,
+                                mainAxisSpacing: 16,
+                              ),
                               itemCount: _clinicas.length,
                               itemBuilder: (context, index) {
                                 final clinica = _clinicas[index];
-                                return Padding(
-                                  padding: EdgeInsets.only(right: 16),
-                                  child: ClinicCard(
-                                    name: clinica['nome_clinica'] ?? '',
-                                    address: clinica['localizacao']
-                                            ["endereco"] ??
-                                        '',
-                                    image: 'assets/images/clinica1.jpg',
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => ReviewScreen(
-                                            name: clinica['nome_clinica'] ?? '',
-                                            address:
-                                                clinica['endereco_clinica'] ??
-                                                    '',
-                                            image: 'assets/images/clinica1.jpg',
-                                          ),
+                                return ClinicCard(
+                                  name: clinica['nome_clinica'] ?? '',
+                                  address: clinica['endereco_clinica'] ?? '',
+                                  image:
+                                      'assets/images/clinica${(index % 3) + 1}.jpg',
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ReviewScreen(
+                                          name: clinica['nome_clinica'] ?? '',
+                                          address:
+                                              clinica['endereco_clinica'] ?? '',
+                                          image:
+                                              'assets/images/clinica${(index % 3) + 1}.jpg',
                                         ),
-                                      );
-                                    },
-                                  ),
+                                      ),
+                                    );
+                                  },
                                 );
                               },
                             ),
             ),
+            SizedBox(height: 16),
+            // Outras seções ou conteúdos podem ser adicionados aqui
           ],
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
-        type: 
-        BottomNavigationBarType.fixed,
+        type: BottomNavigationBarType.fixed,
         selectedItemColor: Colors.teal,
         unselectedItemColor: Colors.grey,
         items: const [
@@ -261,7 +204,7 @@ class _LauncherScreenState extends State<LauncherScreen> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.map),
-            label: 'Clinicas',
+            label: 'Clínicas',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.pets),

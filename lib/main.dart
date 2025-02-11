@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vet_manager/pet/cadastro_pet.dart';
 import 'package:vet_manager/screens/agendamento.dart';
+import 'package:vet_manager/screens/pets.dart';
 import 'package:vet_manager/services/env_service.dart';
 import 'package:vet_manager/usuario/user.dart';
 import 'tela_inicial/launcher.dart';
@@ -36,6 +37,7 @@ class VetManagerApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
         '/launcher': (context) => LauncherScreen(),
+        "/pet": (context) => PetListScreen(),
         '/user': (context) => UserProfileScreen(),
         '/cadastro_pet': (context) => CadastroPetScreen(),
         '/agendamentos': (context) => AgendamentosScreen(),

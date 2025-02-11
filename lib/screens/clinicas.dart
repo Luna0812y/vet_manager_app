@@ -98,27 +98,100 @@ class _ClinicasScreenState extends State<ClinicasScreen> {
   }
 
   void _showClinicDetails(Map<String, dynamic> clinic) {
-    showDialog(
+    showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
+      ),
       builder: (context) {
-        return AlertDialog(
-          title: Text(clinic['nome']),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Image.asset(clinic['imagem'], height: 150, fit: BoxFit.cover),
-              SizedBox(height: 10),
-              Text("📍 ${clinic['endereco']}"),
-              Text("⭐ ${clinic['nota']} (${clinic['avaliacoes']} avaliações)"),
-              Text("📖 ${clinic['descricao']}"),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text("Fechar"),
-            ),
-          ],
+        return DraggableScrollableSheet(
+          expand: false,
+          builder: (context, scrollController) {
+            return SingleChildScrollView(
+              controller: scrollController,
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 15),
+                    Text(
+                      clinic['nome_clinica'],
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Icon(Icons.location_on, color: Colors.grey),
+                        SizedBox(width: 5),
+                        Expanded(
+                          child: Text(
+                            clinic['endereco'] ?? 'Endereço não disponível',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Icon(Icons.star, color: Colors.amber),
+                        SizedBox(width: 5),
+                        Text(
+                          "${clinic['avaliacao_clinica']} ★ (${clinic['total_avaliacoes']} avaliações)",
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 15),
+                    if (clinic['imagem'] != null)
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(15),
+                        child: Image.network(
+                          clinic['imagem'],
+                          height: 200,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    SizedBox(height: 15),
+                    Text(
+                      clinic['descricao'] ?? 'Descrição não disponível',
+                      textAlign: TextAlign.justify,
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: Text('Fechar'),
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: Size(double.infinity, 50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         );
       },
     );
