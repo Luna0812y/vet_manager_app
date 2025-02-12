@@ -5,11 +5,11 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vet_manager/screens/login.dart';
 
-import '../models/user.dart';
-import '../services/user_service.dart';
+import '../../models/user.dart';
+import '../../services/user_service.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({Key? key}) : super(key: key);
+  const ProfileScreen({super.key});
 
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
@@ -28,7 +28,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<User> _loadUserData() async {
     try {
-      return await _userService.fetchUserData(); // 🔹 Agora busca o usuário autenticado via /me
+      return await _userService
+          .fetchUserData(); // 🔹 Agora busca o usuário autenticado via /me
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -39,7 +40,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       rethrow;
     }
   }
-
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
@@ -52,12 +52,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       try {
         await _userService.uploadProfilePicture(_image!);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text("Imagem enviada com sucesso!"),
           backgroundColor: Colors.green,
         ));
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text("Erro ao enviar imagem"),
           backgroundColor: Colors.red,
         ));
@@ -73,7 +73,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     // Redireciona para a tela de login
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => LoginScreen()),
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
     );
   }
 
@@ -81,18 +81,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Perfil do Usuário"),
+        title: const Text("Perfil do Usuário"),
         backgroundColor: Colors.teal,
       ),
       body: FutureBuilder<User>(
         future: _userFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text("Erro ao carregar dados do usuário."));
+            return const Center(child: Text("Erro ao carregar dados do usuário."));
           } else if (!snapshot.hasData) {
-            return Center(child: Text("Usuário não encontrado."));
+            return const Center(child: Text("Usuário não encontrado."));
           }
 
           final user = snapshot.data!;
@@ -107,25 +107,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         radius: 50,
                         backgroundImage: FileImage(_image!),
                       )
-                    : Icon(Icons.account_circle, size: 100, color: Colors.teal),
-                SizedBox(height: 20),
+                    : const Icon(Icons.account_circle, size: 100, color: Colors.teal),
+                const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: _pickImage,
-                  child: Text("Alterar Foto"),
+                  child: const Text("Alterar Foto"),
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 _buildInfoRow("Nome", user.name),
-                _buildInfoRow("Email", user.email), 
+                _buildInfoRow("Email", user.email),
                 _buildInfoRow("CPF", user.cpf),
-                Spacer(), // Empurra o botão de logout para o final da tela
+                const Spacer(), // Empurra o botão de logout para o final da tela
                 ElevatedButton.icon(
                   onPressed: _logout,
-                  icon: Icon(Icons.logout),
-                  label: Text("Sair"),
+                  icon: const Icon(
+                    Icons.logout,
+                    color: Colors.white,
+                  ),
+                  label: const Text("Sair"),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
                     foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                   ),
                 ),
               ],
@@ -144,11 +147,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           Text(
             "$label:",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           Text(
             value,
-            style: TextStyle(fontSize: 16),
+            style: const TextStyle(fontSize: 16),
           ),
         ],
       ),

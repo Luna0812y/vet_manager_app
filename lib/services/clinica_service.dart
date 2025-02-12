@@ -6,6 +6,7 @@ class ClinicaService {
   static const String baseUrl = "https://vetmanager-cvof.onrender.com";
   String? token;
 
+  // Buscar todas as clínicas
   Future<List<Map<String, dynamic>>> fetchClinics() async {
     token = await getToken();
     String url = "$baseUrl/clinicas";
@@ -24,11 +25,13 @@ class ClinicaService {
     }
   }
 
+  // Pegar o token do usuário
   Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString("token"); // Retorna null se não existir
   }
 
+  // Cadastrar uma clínica
   Future<void> cadastrarClinica(Map<String, dynamic> clinica) async {
     final response = await http.post(
       Uri.parse("$baseUrl/clinicas"),

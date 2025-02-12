@@ -1,9 +1,0 @@
-Cachorro: Labrador
-Cachorro: Bulldog
-Cachorro: Poodle
-Gato: Siamês
-Gato: Persa
-Gato: Maine Coon
-Coelho: Lionhead
-Coelho: Mini Lop
-Coelho: Netherland Dwarf

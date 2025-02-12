@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:vet_manager/services/user_service.dart';
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({Key? key}) : super(key: key);
+  const RegisterScreen({super.key});
 
   @override
   _RegisterScreenState createState() => _RegisterScreenState();
@@ -106,7 +106,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         obscureText: obscureText,
         keyboardType: keyboardType,
         decoration:
-            InputDecoration(labelText: label, border: OutlineInputBorder()),
+            InputDecoration(labelText: label, border: const OutlineInputBorder()),
       ),
     );
   }

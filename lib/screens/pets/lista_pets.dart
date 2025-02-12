@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:vet_manager/pet/cadastro_pet.dart';
+import 'package:vet_manager/screens/pets/cadastro_pets.dart';
 import 'package:vet_manager/services/pet_service.dart';
 
 class PetListScreen extends StatefulWidget {
+  const PetListScreen({super.key});
+
   @override
   _PetListScreenState createState() => _PetListScreenState();
 }
@@ -17,10 +19,11 @@ class _PetListScreenState extends State<PetListScreen> {
   }
 
   Future<void> loadPets() async {
-    final _pets = await PetService().fetchPets();
+    // Carrega a lista de pets do banco de dados
+    final loadedPets = await PetService().fetchPets();
 
     setState(() {
-      pets = _pets;
+      pets = loadedPets;
     });
   }
 
@@ -31,11 +34,12 @@ class _PetListScreenState extends State<PetListScreen> {
     ).then((_) => loadPets());
   }
 
+  // Deleta um pet
   Future<void> deletePet(int petId) async {
     bool success = await PetService().deletePet(petId);
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Pet deletado com sucesso!'),
           backgroundColor: Colors.teal,
         ),
@@ -43,7 +47,7 @@ class _PetListScreenState extends State<PetListScreen> {
       loadPets();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Falha ao deletar pet. Tente novamente.'),
           backgroundColor: Colors.red,
         ),
@@ -51,23 +55,24 @@ class _PetListScreenState extends State<PetListScreen> {
     }
   }
 
+  // Confirma a deleção do pet
   void confirmDeletePet(int petId, String petName) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Deletar Pet'),
+        title: const Text('Deletar Pet'),
         content: Text('Tem certeza que deseja deletar "$petName"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text('Cancelar'),
+            child: const Text('Cancelar'),
           ),
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
               deletePet(petId);
             },
-            child: Text(
+            child: const Text(
               'Deletar',
               style: TextStyle(color: Colors.red),
             ),
@@ -77,11 +82,12 @@ class _PetListScreenState extends State<PetListScreen> {
     );
   }
 
+  // Constrói a tela de lista de pets
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Lista de Pets',
           style: TextStyle(
             color: Colors.white,
@@ -91,16 +97,16 @@ class _PetListScreenState extends State<PetListScreen> {
         centerTitle: true,
       ),
       body: pets.isEmpty
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
               onRefresh: loadPets,
               child: ListView.builder(
-                padding: EdgeInsets.all(8.0),
+                padding: const EdgeInsets.all(8.0),
                 itemCount: pets.length,
                 itemBuilder: (context, index) {
                   final pet = pets[index];
 
-                  // Calcula o porte do pet com base no peso
+                  // Classifica o porte do pet baseado no peso
                   String porte;
                   if (pet['peso_pet'] != null) {
                     double peso = pet['peso_pet'] is double
@@ -129,22 +135,22 @@ class _PetListScreenState extends State<PetListScreen> {
 
                   return Card(
                     elevation: 4.0,
-                    margin:
-                        EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+                    margin: const EdgeInsets.symmetric(
+                        vertical: 8.0, horizontal: 4.0),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10.0),
                     ),
                     child: ListTile(
                       leading: CircleAvatar(
                         backgroundColor: Colors.green.shade100,
-                        child: Icon(
+                        child: const Icon(
                           Icons.pets,
                           color: Colors.teal,
                         ),
                       ),
                       title: Text(
                         pet['nome_pet'] ?? 'Nome Desconhecido',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 18.0,
                         ),
@@ -178,7 +184,7 @@ class _PetListScreenState extends State<PetListScreen> {
                         ],
                       ),
                       trailing: IconButton(
-                        icon: Icon(
+                        icon: const Icon(
                           Icons.delete,
                           color: Colors.red,
                         ),
@@ -199,8 +205,8 @@ class _PetListScreenState extends State<PetListScreen> {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: navigateToAddPetScreen,
-        child: Icon(Icons.add),
         backgroundColor: Colors.teal,
+        child: Icon(Icons.add),
       ),
     );
   }

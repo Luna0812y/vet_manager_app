@@ -8,7 +8,7 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 class UserService {
   static const String _baseUrl = 'https://vetmanager-cvof.onrender.com/users';
 
-  /// 🔹 **Cadastra um novo usuário**
+  // Cadastrar um novo usuário
   Future<bool> registerUser({
     required String nomeUsuario,
     required String emailUsuario,
@@ -19,12 +19,9 @@ class UserService {
       'nome_usuario': nomeUsuario.trim(),
       'email_usuario': emailUsuario.trim().toLowerCase(),
       'senha_usuario': senhaUsuario,
-      'foto_usuario': "string", // 🔹 Forçar valor padrão
+      'foto_usuario': "string",
       'cpf': cpfUsuario.replaceAll(RegExp(r'[^\d]'), ''),
     };
-
-    // Log dos dados antes do envio
-    print("🔹 Enviando para API: $userData");
 
     try {
       final response = await http.post(
@@ -36,14 +33,11 @@ class UserService {
         body: json.encode(userData),
       );
 
-      print("🔹 Resposta da API: ${response.statusCode} - ${response.body}");
-
       if (response.statusCode == 201) {
         return true;
       } else if (response.statusCode == 409) {
         throw Exception('Usuário já existe');
       } else if (response.statusCode == 400) {
-        print("🔴 ERRO 400: ${response.body}");
         throw Exception('Dados inválidos: ${response.body}');
       } else {
         throw Exception('Erro ao cadastrar usuário: ${response.body}');
@@ -53,7 +47,7 @@ class UserService {
     }
   }
 
-  /// 🔹 **Faz login e salva o token**
+  // Fazer login e salvar o token
   Future<bool> loginUser({
     required String email,
     required String senha,
@@ -92,37 +86,30 @@ class UserService {
     }
   }
 
-  /// 🔹 **Obtém o ID do usuário a partir do token salvo**
+  // Pegar o ID do usuário a partir do token salvo
   Future<int?> getUserIdFromToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString("token");
 
     if (token == null) {
-      print("⚠️ Token não encontrado no SharedPreferences.");
       return null;
     }
 
     try {
       Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
-      print('Token: $token');
-      print("📌 Token Decodificado: $decodedToken");
-
-      // Acessando o ID corretamente
       int? userId = decodedToken["id"];
 
       if (userId == null) {
-        print("⚠️ ID do usuário não encontrado no token.");
         return null;
       }
 
       return userId;
     } catch (e) {
-      print("Erro ao decodificar token: $e");
       return null;
     }
   }
 
-  /// 🔹 **Busca os dados do usuário pelo ID**
+  // Buscar os dados do usuário
   Future<User> fetchUserData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString("token");
@@ -148,7 +135,7 @@ class UserService {
     }
   }
 
-  /// 🔹 **Faz upload da foto de perfil do usuário**
+  // Fazer upload da foto de perfil do usuário
   Future<bool> uploadProfilePicture(File imageFile) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString("token");
@@ -186,7 +173,7 @@ class UserService {
     }
   }
 
-  /// 🔹 **Retorna o ID do usuário salvo no token**
+  // Pegar o ID do usuário
   Future<int?> getUserId() async {
     return getUserIdFromToken();
   }

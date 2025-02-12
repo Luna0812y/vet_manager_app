@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vet_manager/services/agendamento_service.dart';
 import 'dart:convert';
 import 'package:vet_manager/services/clinica_service.dart';
+import 'package:vet_manager/services/pet_service.dart';
 import 'package:vet_manager/services/user_service.dart';
 
 class CriarAgendamentoScreen extends StatefulWidget {
-  final Map<String, dynamic> pet;
-
-  CriarAgendamentoScreen({required this.pet});
+  const CriarAgendamentoScreen({super.key});
 
   @override
   _CriarAgendamentoScreenState createState() => _CriarAgendamentoScreenState();
@@ -21,38 +21,37 @@ class _CriarAgendamentoScreenState extends State<CriarAgendamentoScreen> {
   String _errorMessage = "";
 
   final ClinicaService clinicService = ClinicaService();
+  final PetService petService = PetService();
   final UserService _userService = UserService();
 
   List<Map<String, dynamic>> _clinicas = [];
+  List<Map<String, dynamic>> _pets = [];
   Map<String, dynamic>? _clinicaSelecionada;
+  Map<String, dynamic>? _petSelecionado;
 
   int? _userId;
   String? _token;
 
-  List<Map<String, dynamic>> _agendamentos = [];
-  bool _isLoadingAgendamentos = false;
+  List<Map<String, dynamic>> _tiposServico = [];
+  List<Map<String, dynamic>> _trabalhos = [];
+  Map<String, dynamic>? _tipoServicoSelecionado;
+  Map<String, dynamic>? _trabalhoSelecionado;
 
   @override
   void initState() {
     super.initState();
-    _loadClinicas();
     _loadUserId();
     _loadToken();
-    _fetchAgendamentos();
+    _loadClinicas();
+    _loadPets();
   }
 
   Future<void> _loadUserId() async {
-    try {
-      int? userId = await _userService.getUserIdFromToken();
-      if (userId != null) {
-        setState(() {
-          _userId = userId;
-        });
-      } else {
-        throw Exception("ID do usuário não encontrado.");
-      }
-    } catch (e) {
-      print("Erro ao obter ID do usuário: $e");
+    int? userId = await _userService.getUserIdFromToken();
+    if (userId != null) {
+      setState(() {
+        _userId = userId;
+      });
     }
   }
 
@@ -63,8 +62,6 @@ class _CriarAgendamentoScreenState extends State<CriarAgendamentoScreen> {
       setState(() {
         _token = token;
       });
-    } else {
-      print("Token inválido. Por favor, faça login novamente.");
     }
   }
 
@@ -74,47 +71,153 @@ class _CriarAgendamentoScreenState extends State<CriarAgendamentoScreen> {
       setState(() {
         _clinicas = clinicas;
         if (_clinicas.isNotEmpty) {
-          _clinicaSelecionada =
-              _clinicas[0]; // Seleciona a primeira clínica por padrão
+          _clinicaSelecionada = _clinicas[0];
         }
       });
     } catch (e) {
       setState(() {
-        _errorMessage = "Erro ao carregar clínicas.";
+        _errorMessage = "Erro ao carregar clínicas";
       });
     }
   }
 
-  Future<void> _createAgendamento() async {
-    if (_selectedDate == null || _selectedTime == null) {
+  Future<void> _loadPets() async {
+    try {
+      List<dynamic> data = await petService.fetchPets();
+      List<Map<String, dynamic>> pets = data.cast<Map<String, dynamic>>();
+
       setState(() {
-        _errorMessage = "Por favor, selecione data e horário.";
+        _pets = pets;
+        if (_pets.isNotEmpty) {
+          _petSelecionado = _pets[0];
+        }
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = "Erro ao carregar pets";
+      });
+    }
+  }
+
+  void _updateServicosETrabalhos(Map<String, dynamic>? clinica) {
+    if (clinica == null) {
+      setState(() {
+        _tiposServico = [];
+        _trabalhos = [];
+        _tipoServicoSelecionado = null;
+        _trabalhoSelecionado = null;
       });
       return;
     }
 
-    if (_clinicaSelecionada == null) {
+    // Extract unique services from the selected clinic
+    List<Map<String, dynamic>> servicos = [];
+    for (var servico in clinica['servicos'] ?? []) {
+      servicos.add({
+        'id_servico': servico['id_servico'],
+        'nome_servico': servico['nome_servico'],
+        'trabalhos': servico['trabalhos'],
+      });
+    }
+
+    setState(() {
+      _tiposServico = servicos;
+      _tipoServicoSelecionado =
+          _tiposServico.isNotEmpty ? _tiposServico[0] : null;
+      _updateTrabalhos(_tipoServicoSelecionado);
+    });
+  }
+
+  void _updateTrabalhos(Map<String, dynamic>? servico) {
+    if (servico == null) {
       setState(() {
-        _errorMessage = "Por favor, selecione uma clínica.";
+        _trabalhos = [];
+        _trabalhoSelecionado = null;
       });
       return;
     }
 
-    if (_userId == null) {
-      setState(() {
-        _errorMessage = "Usuário não identificado.";
-      });
-      return;
-    }
+    // Get trabalhos directly from the selected service
+    List<Map<String, dynamic>> trabalhos = (servico['trabalhos'] as List? ?? [])
+        .map((trabalho) => {
+              'id_servico': servico['id_servico'],
+              'id_trabalho': trabalho['id_trabalho'],
+              'nome_trabalho': trabalho['nome_trabalho'],
+              'nome_servico': servico['nome_servico'],
+            })
+        .toList();
 
+    setState(() {
+      _trabalhos = trabalhos;
+      _trabalhoSelecionado = _trabalhos.isNotEmpty ? _trabalhos[0] : null;
+    });
+  }
+
+  Widget _buildServicoETrabalhoDropdowns() {
+    return Column(
+      children: [
+        DropdownButtonFormField<Map<String, dynamic>>(
+          decoration: const InputDecoration(
+            labelText: 'Selecione o Tipo de Serviço',
+            border: OutlineInputBorder(),
+          ),
+          value: _tipoServicoSelecionado,
+          onChanged: (newValue) {
+            setState(() {
+              _tipoServicoSelecionado = newValue;
+              _updateTrabalhos(newValue);
+            });
+          },
+          items: _tiposServico.map((servico) {
+            return DropdownMenuItem(
+              value: servico,
+              child: Text(servico['nome_servico'] ?? 'Serviço sem nome'),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 20),
+        DropdownButtonFormField<Map<String, dynamic>>(
+          decoration: const InputDecoration(
+            labelText: 'Selecione o Trabalho',
+            border: OutlineInputBorder(),
+          ),
+          value: _trabalhoSelecionado,
+          onChanged: (newValue) {
+            setState(() {
+              _trabalhoSelecionado = newValue;
+            });
+          },
+          items: _trabalhos.map((trabalho) {
+            return DropdownMenuItem(
+              value: trabalho,
+              child: Text(trabalho['nome_trabalho'] ?? 'Trabalho sem nome'),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _cadastrarAgendamento() async {
     setState(() {
       _isLoading = true;
       _errorMessage = "";
     });
 
+    if (_selectedDate == null ||
+        _selectedTime == null ||
+        _petSelecionado == null ||
+        _clinicaSelecionada == null ||
+        _trabalhoSelecionado == null) {
+      setState(() {
+        _errorMessage = "Preencha todos os campos!";
+        _isLoading = false;
+      });
+      return;
+    }
+
     try {
-      // Prepara a data e hora
-      final DateTime agendamentoDateTime = DateTime(
+      final dataCompleta = DateTime(
         _selectedDate!.year,
         _selectedDate!.month,
         _selectedDate!.day,
@@ -122,60 +225,30 @@ class _CriarAgendamentoScreenState extends State<CriarAgendamentoScreen> {
         _selectedTime!.minute,
       );
 
-      // Formata a data e horário
-      String dataAgendamento = agendamentoDateTime.toIso8601String();
-      String horarioAgendamento =
-          "${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}";
-
-      // URL da API
-      final String apiUrl = 'https://vetmanager-cvof.onrender.com/agendamentos';
-
-      // Corpo da requisição
-      final Map<String, dynamic> requestBody = {
-        'data_agendamento': dataAgendamento,
-        'horario_agendamento': horarioAgendamento,
-        'status_agendamento': 'AGENDADO',
-        'id_tipo_servico': 1, // Substitua com o ID real, se necessário
-        'id_pet': widget.pet['id_pet'],
-        'id_clinica': _clinicaSelecionada?['id_clinica'],
+      final agendamentoData = {
+        "data_agendamento": dataCompleta.toUtc().toIso8601String(),
+        "horario_agendamento":
+            "${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}",
+        "status_agendamento": "AGENDADO",
+        "id_pet": _petSelecionado!["id_pet"],
+        "id_clinica": _clinicaSelecionada!["id_clinica"],
+        "id_tipo_servico": _trabalhoSelecionado!["id_servico"],
+        "id_trabalho": _trabalhoSelecionado!["id_trabalho"],
       };
 
-      if (_token == null || _token!.isEmpty) {
-        print("Token inválido. Por favor, faça login novamente.");
-        return;
-      }
+      final success =
+          await AgendamentoService().criarAgendamento(agendamentoData);
 
-      // Cabeçalhos da requisição
-      final Map<String, String> headers = {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer $_token"
-      };
-
-      // Faz a requisição POST
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: headers,
-        body: json.encode(requestBody),
-      );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        // Atualiza a lista de agendamentos
-        _fetchAgendamentos();
-
-        // Exibe mensagem de sucesso
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Agendamento criado com sucesso!")),
-        );
+      if (success) {
+        Navigator.pop(context, true);
       } else {
         setState(() {
-          _errorMessage =
-              "Erro ao criar agendamento. Verifique os dados e tente novamente.";
+          _errorMessage = "Não foi possível criar o agendamento";
         });
       }
     } catch (e) {
       setState(() {
-        _errorMessage =
-            "Erro ao criar agendamento. Tente novamente mais tarde.";
+        _errorMessage = "Erro ao criar agendamento: ${e.toString()}";
       });
     } finally {
       setState(() {
@@ -184,213 +257,126 @@ class _CriarAgendamentoScreenState extends State<CriarAgendamentoScreen> {
     }
   }
 
-  Future<void> _fetchAgendamentos() async {
-    setState(() {
-      _isLoadingAgendamentos = true;
-    });
-
-    try {
-      if (_token == null || _token!.isEmpty) {
-        print("Token inválido. Por favor, faça login novamente.");
-        return;
-      }
-
-      // URL da API
-      final String apiUrl = 'https://vetmanager-cvof.onrender.com/agendamentos';
-
-      // Cabeçalhos da requisição
-      final Map<String, String> headers = {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer $_token"
-      };
-
-      // Faz a requisição GET
-      final response = await http.get(
-        Uri.parse(apiUrl),
-        headers: headers,
-      );
-
-      if (response.statusCode == 200) {
-        List<dynamic> agendamentosJson = json.decode(response.body);
-
-        setState(() {
-          _agendamentos = agendamentosJson
-              .map((agendamento) => agendamento as Map<String, dynamic>)
-              .toList();
-        });
-      } else {
-        setState(() {
-          _errorMessage =
-              "Erro ao carregar agendamentos. Tente novamente mais tarde.";
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _errorMessage =
-            "Erro ao carregar agendamentos. Tente novamente mais tarde.";
-      });
-    } finally {
-      setState(() {
-        _isLoadingAgendamentos = false;
-      });
-    }
-  }
-
-  // Métodos para selecionar data e hora
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(Duration(days: 365)),
-    );
-    if (pickedDate != null)
-      setState(() {
-        _selectedDate = pickedDate;
-      });
-  }
-
-  Future<void> _selectTime(BuildContext context) async {
-    final TimeOfDay? pickedTime =
-        await showTimePicker(context: context, initialTime: TimeOfDay.now());
-    if (pickedTime != null)
-      setState(() {
-        _selectedTime = pickedTime;
-      });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Nova Consulta"),
-        backgroundColor: Colors.teal,
-      ),
+          title: const Text("Nova Consulta"), backgroundColor: Colors.teal),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            Text(
-              "Pet Selecionado: ${widget.pet['nome_pet']}",
-              style: TextStyle(fontSize: 18),
+            DropdownButtonFormField<Map<String, dynamic>>(
+              decoration: const InputDecoration(
+                labelText: 'Selecione o Pet',
+                border: OutlineInputBorder(),
+              ),
+              value: _petSelecionado,
+              onChanged: (newValue) {
+                setState(() {
+                  _petSelecionado = newValue;
+                });
+              },
+              items: _pets.map((pet) {
+                return DropdownMenuItem(
+                  value: pet,
+                  child: Text(pet['nome_pet'] ?? 'Nome não encontrado'),
+                );
+              }).toList(),
             ),
-            SizedBox(height: 16),
-            // Dropdown para seleção da clínica
-            if (_clinicas.isNotEmpty)
-              DropdownButtonFormField<Map<String, dynamic>>(
-                decoration: InputDecoration(
-                  labelText: 'Selecione a Clínica',
-                  border: OutlineInputBorder(),
-                ),
-                value: _clinicaSelecionada,
-                onChanged: (Map<String, dynamic>? newValue) {
+            const SizedBox(height: 20),
+            DropdownButtonFormField<Map<String, dynamic>>(
+              decoration: const InputDecoration(
+                labelText: 'Selecione a Clínica',
+                border: OutlineInputBorder(),
+              ),
+              value: _clinicaSelecionada,
+              onChanged: (newValue) {
+                setState(() {
+                  _clinicaSelecionada = newValue;
+                  _updateServicosETrabalhos(newValue);
+                });
+              },
+              items: _clinicas.map((clinica) {
+                return DropdownMenuItem(
+                  value: clinica,
+                  child: Text(clinica['nome_clinica'] ?? 'Clínica sem nome'),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 20),
+            _buildServicoETrabalhoDropdowns(),
+            const SizedBox(height: 20),
+            ListTile(
+              title: Text(_selectedDate == null
+                  ? 'Selecione a Data'
+                  : 'Data: ${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}'),
+              trailing: const Icon(Icons.calendar_today),
+              onTap: () async {
+                final pickedDate = await showDatePicker(
+                  context: context,
+                  initialDate: DateTime.now(),
+                  firstDate: DateTime.now(),
+                  lastDate: DateTime.now().add(const Duration(days: 365)),
+                );
+                if (pickedDate != null) {
                   setState(() {
-                    _clinicaSelecionada = newValue;
+                    _selectedDate = pickedDate;
                   });
-                },
-                items: _clinicas.map((clinica) {
-                  return DropdownMenuItem<Map<String, dynamic>>(
-                    value: clinica,
-                    child: Text(clinica['nome_clinica']),
-                  );
-                }).toList(),
-              ),
-            SizedBox(height: 16),
-            ListTile(
-              title: Text(
-                _selectedDate == null
-                    ? 'Selecione a Data'
-                    : 'Data: ${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
-              ),
-              trailing: Icon(Icons.calendar_today),
-              onTap: () => _selectDate(context),
+                }
+              },
             ),
             ListTile(
-              title: Text(
-                _selectedTime == null
-                    ? 'Selecione o Horário'
-                    : 'Horário: ${_selectedTime!.format(context)}',
-              ),
-              trailing: Icon(Icons.access_time),
-              onTap: () => _selectTime(context),
+              title: Text(_selectedTime == null
+                  ? 'Selecione o Horário'
+                  : 'Horário: ${_selectedTime!.format(context)}'),
+              trailing: const Icon(Icons.access_time),
+              onTap: () async {
+                final pickedTime = await showTimePicker(
+                  context: context,
+                  initialTime: TimeOfDay.now(),
+                );
+                if (pickedTime != null) {
+                  setState(() {
+                    _selectedTime = pickedTime;
+                  });
+                }
+              },
             ),
-            if (_errorMessage.isNotEmpty)
-              Text(
-                _errorMessage,
-                style: TextStyle(color: Colors.red),
-              ),
-            SizedBox(height: 16),
+            const SizedBox(height: 30),
             _isLoading
-                ? CircularProgressIndicator()
-                : ElevatedButton(
-                    onPressed: _createAgendamento,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.teal, // Cor de fundo
-                      foregroundColor: Colors.white, // Cor do texto
-                      padding: EdgeInsets.symmetric(
-                          vertical: 16, horizontal: 32), // Padding maior
-                      shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(30), // Bordas arredondadas
-                      ),
-                      elevation: 5, // Sombra para destacar o botão
-                    ),
-                    child: Text(
-                      "Agendar Consulta",
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-            SizedBox(height: 24),
-            Divider(),
-            SizedBox(height: 16),
-            Text(
-              "Agendamentos",
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 16),
-            _isLoadingAgendamentos
-                ? CircularProgressIndicator()
-                : _agendamentos.isEmpty
-                    ? Text("Nenhum agendamento encontrado.")
-                    : Expanded(
-                        child: ListView.builder(
-                          itemCount: _agendamentos.length,
-                          itemBuilder: (context, index) {
-                            final agendamento = _agendamentos[index];
-                            return Card(
-                              margin: EdgeInsets.symmetric(vertical: 8),
-                              child: ListTile(
-                                leading: Icon(Icons.calendar_today,
-                                    color: Colors.teal),
-                                title: Text(
-                                    "Data: ${DateTime.parse(agendamento['data_agendamento']).day}/${DateTime.parse(agendamento['data_agendamento']).month}/${DateTime.parse(agendamento['data_agendamento']).year}"),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                        "Horário: ${agendamento['horario_agendamento']}"),
-                                    Text(
-                                        "Status: ${agendamento['status_agendamento']}"),
-                                    Text(
-                                        "Clínica: ${agendamento['nome_clinica'] ?? 'Não informado'}"),
-                                  ],
-                                ),
-                                trailing: Icon(
-                                  agendamento['status_agendamento'] ==
-                                          'AGENDADO'
-                                      ? Icons.check_circle
-                                      : Icons.cancel,
-                                  color: agendamento['status_agendamento'] ==
-                                          'AGENDADO'
-                                      ? Colors.green
-                                      : Colors.red,
-                                ),
-                              ),
-                            );
-                          },
+                ? const CircularProgressIndicator()
+                : Container(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.pets, color: Colors.white),
+                      label: const Text(
+                        "Agendar Consulta",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
                       ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.teal,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        elevation: 5,
+                      ),
+                      onPressed: _cadastrarAgendamento,
+                    ),
+                  ),
+            if (_errorMessage.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 20),
+                child: Text(
+                  _errorMessage,
+                  style: const TextStyle(color: Colors.red, fontSize: 16),
+                ),
+              ),
           ],
         ),
       ),

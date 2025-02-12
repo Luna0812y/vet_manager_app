@@ -1,13 +1,12 @@
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:vet_manager/screens/pets.dart';
-import 'dart:async';
+import 'package:vet_manager/screens/pets/lista_pets.dart';
 import 'dart:io';
-
 import 'package:vet_manager/services/pet_service.dart';
 
 class CadastroPetScreen extends StatefulWidget {
+  const CadastroPetScreen({super.key});
+
   @override
   _CadastroPetScreenState createState() => _CadastroPetScreenState();
 }
@@ -18,9 +17,7 @@ class _CadastroPetScreenState extends State<CadastroPetScreen> {
   int _currentStep = 0;
 
   String? _selectedType; // especie_pet
-  String? _selectedBreed; // raca_pet (agora será preenchido pelo usuário)
-  String?
-      _selectedSize; // altura_pet (vou mapear os tamanhos para valores numéricos)
+  String? _selectedSize;
   double _selectedWeight = 10.0; // peso_pet
   File? _petPhoto;
   String? _petGender; // sexo_pet
@@ -33,7 +30,6 @@ class _CadastroPetScreenState extends State<CadastroPetScreen> {
   @override
   void initState() {
     super.initState();
-    // Não precisamos mais carregar as raças, já que o usuário irá digitar
   }
 
   Future<void> _pickPetPhoto() async {
@@ -48,7 +44,6 @@ class _CadastroPetScreenState extends State<CadastroPetScreen> {
   }
 
   // Método para enviar os dados do pet para a API
-  // Método para enviar os dados do pet para a API
   Future<void> _submitPet() async {
     // Valida os campos obrigatórios
     if (_nameController.text.isEmpty ||
@@ -57,7 +52,7 @@ class _CadastroPetScreenState extends State<CadastroPetScreen> {
         _selectedSize == null ||
         _petGender == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Por favor, preencha todos os campos obrigatórios.'),
           backgroundColor: Colors.red,
         ),
@@ -70,18 +65,17 @@ class _CadastroPetScreenState extends State<CadastroPetScreen> {
     String breed = _selectedType!; // especie_pet
     String raca = _breedController.text.trim(); // raca_pet
 
-    // Converter o tamanho selecionado para uma altura numérica (int)
+    // Converter o tamanho selecionado para uma altura numérica
     int altura;
     if (_selectedSize == 'Pequeno') {
-      altura = 30; // Altura em cm para pequeno (exemplo)
+      altura = 30;
     } else if (_selectedSize == 'Médio') {
-      altura = 50; // Altura em cm para médio (exemplo)
+      altura = 50;
     } else {
-      altura = 70; // Altura em cm para grande (exemplo)
+      altura = 70;
     }
 
-    // O peso já é um double, não precisa converter para string
-    double peso = _selectedWeight; // peso_pet
+    double peso = _selectedWeight;
 
     // Mapear o sexo para 'M' ou 'F'
     String sexo;
@@ -91,7 +85,7 @@ class _CadastroPetScreenState extends State<CadastroPetScreen> {
       sexo = 'F';
     }
 
-    // Chama o método addPet do PetService
+    // Chama o método para adicionar o pet
     bool success = await _petService.addPet(
       name: name,
       breed: breed,
@@ -101,7 +95,6 @@ class _CadastroPetScreenState extends State<CadastroPetScreen> {
       sexo: sexo,
     );
 
-    // Tratar a resposta
     if (success) {
       Navigator.push(
         context,
@@ -109,7 +102,7 @@ class _CadastroPetScreenState extends State<CadastroPetScreen> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Falha ao cadastrar pet. Tente novamente.'),
           backgroundColor: Colors.red,
         ),
@@ -119,7 +112,6 @@ class _CadastroPetScreenState extends State<CadastroPetScreen> {
 
   @override
   void dispose() {
-    // Dispose dos controladores para evitar vazamentos de memória
     _nameController.dispose();
     _breedController.dispose();
     super.dispose();
@@ -129,7 +121,7 @@ class _CadastroPetScreenState extends State<CadastroPetScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Cadastro de Pet"),
+        title: const Text("Cadastro de Pet"),
         backgroundColor: Colors.teal,
       ),
       body: Stepper(
@@ -137,7 +129,7 @@ class _CadastroPetScreenState extends State<CadastroPetScreen> {
         onStepContinue: () {
           if (_currentStep == 0 && _selectedType == null) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
+              const SnackBar(
                 content: Text("Por favor, escolha o tipo do animal primeiro."),
               ),
             );
@@ -149,7 +141,7 @@ class _CadastroPetScreenState extends State<CadastroPetScreen> {
               _currentStep++;
             });
           } else {
-            // Chama o método para enviar os dados
+            // Enviar os dados
             _submitPet();
           }
         },
@@ -162,32 +154,32 @@ class _CadastroPetScreenState extends State<CadastroPetScreen> {
         },
         steps: [
           Step(
-            title: Text("Escolha o tipo"),
-            subtitle: Text("Passo 1 de 5"),
+            title: const Text("Escolha o tipo"),
+            subtitle: const Text("Passo 1 de 5"),
             content: _buildTypeSelection(),
             isActive: _currentStep >= 0,
           ),
           Step(
-            title: Text("Adicione a raça"),
-            subtitle: Text("Passo 2 de 5"),
+            title: const Text("Adicione a raça"),
+            subtitle: const Text("Passo 2 de 5"),
             content: _buildBreedInput(),
             isActive: _currentStep >= 1,
           ),
           Step(
-            title: Text("Escolha o tamanho"),
-            subtitle: Text("Passo 3 de 5"),
+            title: const Text("Escolha o tamanho"),
+            subtitle: const Text("Passo 3 de 5"),
             content: _buildSizeSelection(),
             isActive: _currentStep >= 2,
           ),
           Step(
-            title: Text("Escolha o peso"),
-            subtitle: Text("Passo 4 de 5"),
+            title: const Text("Escolha o peso"),
+            subtitle: const Text("Passo 4 de 5"),
             content: _buildWeightSelection(),
             isActive: _currentStep >= 3,
           ),
           Step(
-            title: Text("Adicione os dados do pet"),
-            subtitle: Text("Passo 5 de 5"),
+            title: const Text("Adicione os dados do pet"),
+            subtitle: const Text("Passo 5 de 5"),
             content: _buildPetBaseData(),
             isActive: _currentStep >= 4,
           ),
@@ -195,8 +187,6 @@ class _CadastroPetScreenState extends State<CadastroPetScreen> {
       ),
     );
   }
-
-  // Widgets atualizados:
 
   Widget _buildTypeSelection() {
     final petTypes = [
@@ -232,7 +222,7 @@ class _CadastroPetScreenState extends State<CadastroPetScreen> {
                       _selectedType == pet["name"] ? Colors.teal : Colors.black,
                 ),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Container(
                 width: 120,
                 height: 120,
@@ -267,12 +257,12 @@ class _CadastroPetScreenState extends State<CadastroPetScreen> {
 
   Widget _buildBreedInput() {
     if (_selectedType == null) {
-      return Text("Por favor, selecione o tipo do animal primeiro.");
+      return const Text("Por favor, selecione o tipo do animal primeiro.");
     }
 
     return TextField(
       controller: _breedController,
-      decoration: InputDecoration(
+      decoration: const InputDecoration(
         labelText: "Raça do Pet",
         border: OutlineInputBorder(),
       ),
@@ -320,7 +310,7 @@ class _CadastroPetScreenState extends State<CadastroPetScreen> {
                   size: size["size"] as double,
                   color: isSelected ? Colors.blue : Colors.grey,
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Text(
                   size["name"] as String,
                   style: TextStyle(
@@ -372,23 +362,25 @@ class _CadastroPetScreenState extends State<CadastroPetScreen> {
           child: CircleAvatar(
             radius: 60,
             backgroundImage: _petPhoto != null ? FileImage(_petPhoto!) : null,
-            child: _petPhoto == null ? Icon(Icons.add_a_photo, size: 40) : null,
+            child: _petPhoto == null
+                ? const Icon(Icons.add_a_photo, size: 40)
+                : null,
           ),
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         TextField(
           controller: _nameController,
-          decoration: InputDecoration(
+          decoration: const InputDecoration(
             labelText: "Nome do Pet",
             border: OutlineInputBorder(),
           ),
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             _buildGenderOption("Fêmea", Icons.female),
-            SizedBox(width: 20),
+            const SizedBox(width: 20),
             _buildGenderOption("Macho", Icons.male),
           ],
         ),
@@ -411,7 +403,7 @@ class _CadastroPetScreenState extends State<CadastroPetScreen> {
                 _petGender == gender ? Colors.blue : Colors.grey[300],
             child: Icon(icon, color: Colors.white),
           ),
-          SizedBox(height: 5),
+          const SizedBox(height: 5),
           Text(gender),
         ],
       ),

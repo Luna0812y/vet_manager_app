@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:vet_manager/services/user_service.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   _LoginScreenState createState() => _LoginScreenState();
@@ -13,8 +13,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final UserService _userService = UserService();
 
-  bool _obscureText = true;
-  bool _isLoading = false;
+  bool _obscureText = true; // Visibilidade da senha
+  bool _isLoading = false; // Estado de carregamento
 
   Future<void> _login() async {
     setState(() {
@@ -27,9 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
         senha: _passwordController.text.trim(),
       );
 
-      if (token != null) {
-        Navigator.pushReplacementNamed(context, '/launcher');
-      }
+      Navigator.pushReplacementNamed(context, '/launcher');
     } catch (e) {
       _showErrorDialog(e.toString());
     } finally {
@@ -59,11 +57,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
-    double screenHeight = MediaQuery.of(context).size.height;
-
-    double buttonWidth = screenWidth * 0.8;
-    double buttonHeight = screenHeight * 0.08;
+    // Calcula dimensões do botão
+    double buttonWidth = MediaQuery.of(context).size.width * 0.8;
+    double buttonHeight = MediaQuery.of(context).size.height * 0.08;
 
     return Scaffold(
       appBar: AppBar(
@@ -192,5 +188,13 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+
+  // Limpa os controllers quando o widget é destruído
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 }

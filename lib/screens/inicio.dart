@@ -1,116 +1,100 @@
 import 'package:flutter/material.dart';
 
 class WelcomeScreen extends StatelessWidget {
-  const WelcomeScreen({Key? key}) : super(key: key);
+  const WelcomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width; // Largura da tela
-    double screenHeight = MediaQuery.of(context).size.height; // Altura da tela
-
-    double buttonWidth =
-        screenWidth * 0.8; // Botão ocupa 80% da largura da tela
-    double buttonHeight =
-        screenHeight * 0.1; // Botão ocupa 10% da altura da tela
+    final size = MediaQuery.of(context).size;
+    final buttonWidth = size.width * 0.8;
+    final buttonHeight = size.height * 0.1;
 
     return Scaffold(
       body: Column(
         children: [
+          SizedBox(height: size.height * 0.15),
+          _buildLogoSection(),
+          const Spacer(),
+          _buildButtonsSection(context, buttonWidth, buttonHeight),
           const SizedBox(height: 30),
-          // Parte superior: LOGO e TÍTULO centralizados
-          Align(
-            alignment: Alignment.topCenter,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center, // Alinha no topo
-              children: [
-                Image.asset('assets/images/logo.png', height: 120),
-                const SizedBox(height: 20),
-                const Text(
-                  'Vet Manager',
-                  style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLogoSection() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Image.asset('assets/images/logo.png', height: 120),
+        const SizedBox(height: 20),
+        const Text(
+          'Vet Manager',
+          style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildButtonsSection(
+      BuildContext context, double buttonWidth, double buttonHeight) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildButton(
+            width: buttonWidth,
+            height: buttonHeight,
+            text: 'Login',
+            isLogin: true,
+            onPressed: () => Navigator.pushNamed(context, '/login'),
           ),
-
-          // Spacer para empurrar os botões para a parte inferior
-          Spacer(), // Empurra o conteúdo para baixo
-
-          // Parte inferior: Botões centralizados
-          Center(
-            child: Column(
-              mainAxisAlignment:
-                  MainAxisAlignment.center, // Centraliza os botões
-              children: [
-                // Botão Login
-                SizedBox(
-                  width: buttonWidth, // Largura proporcional ao tamanho da tela
-                  height:
-                      buttonHeight, // Altura proporcional ao tamanho da tela
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor:
-                          const Color.fromARGB(255, 19, 12, 12), // Cor da letra
-                      backgroundColor: const Color.fromARGB(255, 255, 255,
-                          255), // Cor de fundo quando o botão está ativo
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius
-                            .zero, // Bordas retas (sem arredondamento)
-                        side: BorderSide(
-                          color: Colors.black, // Cor da borda
-                          width: 2, // Largura da borda
-                        ),
-                      ),
-                    ),
-                    child: Text(
-                      ' Login ',
-                      style: TextStyle(
-                        fontSize: 17, // Tamanho da fonte
-                        fontFamily:
-                            'Roboto', // Fonte (pode ser qualquer fonte disponível)
-                        fontWeight: FontWeight.bold, // Peso da fonte
-                      ),
-                    ),
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/login');
-                    },
-                  ),
-                ),
-                const SizedBox(height: 10), // Espaço entre os botões
-                // Botão Registrar
-                SizedBox(
-                  width: buttonWidth,
-                  height: buttonHeight,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: const Color.fromARGB(255, 255, 255, 255),
-                      backgroundColor: const Color.fromARGB(255, 8, 7, 7),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.zero,
-                        side: BorderSide(
-                          color: Colors.black,
-                          width: 2,
-                        ),
-                      ),
-                    ),
-                    child: Text(
-                      ' Cadastro',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontFamily: 'Roboto',
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/register');
-                    },
-                  ),
-                ),
-                const SizedBox(height: 30),
-              ],
-            ),
+          const SizedBox(height: 10),
+          _buildButton(
+            width: buttonWidth,
+            height: buttonHeight,
+            text: 'Cadastro',
+            isLogin: false,
+            onPressed: () => Navigator.pushNamed(context, '/register'),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildButton({
+    required double width,
+    required double height,
+    required String text,
+    required bool isLogin,
+    required VoidCallback onPressed,
+  }) {
+    return SizedBox(
+      width: width,
+      height: height,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          foregroundColor:
+              isLogin ? const Color.fromARGB(255, 19, 12, 12) : Colors.white,
+          backgroundColor:
+              isLogin ? Colors.white : const Color.fromARGB(255, 8, 7, 7),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.zero,
+            side: BorderSide(
+              color: Colors.black,
+              width: 2,
+            ),
+          ),
+        ),
+        onPressed: onPressed,
+        child: Text(
+          text,
+          style: const TextStyle(
+            fontSize: 17,
+            fontFamily: 'Roboto',
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
     );
   }

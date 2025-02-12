@@ -4,18 +4,22 @@ import 'package:geolocator/geolocator.dart';
 import 'package:vet_manager/services/clinica_service.dart';
 
 class ClinicasScreen extends StatefulWidget {
+  const ClinicasScreen({super.key});
+
   @override
   _ClinicasScreenState createState() => _ClinicasScreenState();
 }
 
 class _ClinicasScreenState extends State<ClinicasScreen> {
+  // Controladores e variáveis de estado para o mapa
   late GoogleMapController mapController;
   final ClinicaService clinicService = ClinicaService();
   Set<Marker> markers = {};
   LatLng? _currentPosition;
   bool isLoading = true;
-  BitmapDescriptor? _customIcon;
-  BitmapDescriptor? customIconPerson;
+  // Ícones personalizados para os marcadores do mapa
+  BitmapDescriptor? _customIcon; // Ícone para clínicas
+  BitmapDescriptor? _personIcon; // Ícone para localização do usuário
 
   @override
   void initState() {
@@ -32,7 +36,9 @@ class _ClinicasScreenState extends State<ClinicasScreen> {
 
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      print("Serviço de localização desativado.");
+      setState(() {
+        isLoading = false;
+      });
       return;
     }
 
@@ -40,24 +46,27 @@ class _ClinicasScreenState extends State<ClinicasScreen> {
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        print("Permissão de localização negada.");
+        setState(() {
+          isLoading = false;
+        });
         return;
       }
     }
 
     if (permission == LocationPermission.deniedForever) {
-      print("Permissão de localização negada permanentemente.");
+      setState(() {
+        isLoading = false;
+      });
       return;
     }
 
     Position position = await Geolocator.getCurrentPosition();
     setState(() {
       _currentPosition = LatLng(position.latitude, position.longitude);
+      isLoading = false;
     });
 
-    if (mapController != null) {
-      mapController.animateCamera(CameraUpdate.newLatLng(_currentPosition!));
-    }
+    mapController.animateCamera(CameraUpdate.newLatLng(_currentPosition!));
   }
 
   /// Carrega as clínicas de Teresina
@@ -65,6 +74,7 @@ class _ClinicasScreenState extends State<ClinicasScreen> {
     final clinicas = await ClinicaService().fetchClinics();
 
     setState(() {
+      // Cria marcadores para cada clínica no mapa
       markers = clinicas.map((clinic) {
         return Marker(
           markerId: MarkerId(clinic['nome_clinica']),
@@ -72,6 +82,7 @@ class _ClinicasScreenState extends State<ClinicasScreen> {
               clinic["localizacao"]["longitude"]),
           infoWindow: InfoWindow(
             title: clinic['nome_clinica'],
+            // Exibe avaliação e número de avaliações no snippet
             snippet:
                 "${clinic['avaliacao_clinica']} ★ (${clinic['total_avaliacoes']} avaliações)\n",
             onTap: () => _showClinicDetails(clinic),
@@ -79,21 +90,25 @@ class _ClinicasScreenState extends State<ClinicasScreen> {
           icon: _customIcon ?? BitmapDescriptor.defaultMarker,
         );
       }).toSet();
+      isLoading = false;
     });
   }
 
   Future<BitmapDescriptor> _getCustomIcon(String path) async {
     return await BitmapDescriptor.asset(
-      ImageConfiguration(size: Size(48, 48)),
-      path,
-    );
+        const ImageConfiguration(size: Size(48, 48)), path);
   }
 
   loadIcon() async {
     BitmapDescriptor customIcon =
         await _getCustomIcon('assets/images/logo.png');
+
+    BitmapDescriptor personIcon =
+        await _getCustomIcon('assets/images/person-marker.png');
+
     setState(() {
       _customIcon = customIcon;
+      _personIcon = personIcon;
     });
   }
 
@@ -101,7 +116,7 @@ class _ClinicasScreenState extends State<ClinicasScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
       ),
       builder: (context) {
@@ -111,7 +126,7 @@ class _ClinicasScreenState extends State<ClinicasScreen> {
             return SingleChildScrollView(
               controller: scrollController,
               child: Padding(
-                padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -125,39 +140,39 @@ class _ClinicasScreenState extends State<ClinicasScreen> {
                         ),
                       ),
                     ),
-                    SizedBox(height: 15),
+                    const SizedBox(height: 15),
                     Text(
                       clinic['nome_clinica'],
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: 10),
+                    const SizedBox(height: 10),
                     Row(
                       children: [
-                        Icon(Icons.location_on, color: Colors.grey),
-                        SizedBox(width: 5),
+                        const Icon(Icons.location_on, color: Colors.grey),
+                        const SizedBox(width: 5),
                         Expanded(
                           child: Text(
                             clinic['endereco'] ?? 'Endereço não disponível',
-                            style: TextStyle(fontSize: 16),
+                            style: const TextStyle(fontSize: 16),
                           ),
                         ),
                       ],
                     ),
-                    SizedBox(height: 10),
+                    const SizedBox(height: 10),
                     Row(
                       children: [
-                        Icon(Icons.star, color: Colors.amber),
-                        SizedBox(width: 5),
+                        const Icon(Icons.star, color: Colors.amber),
+                        const SizedBox(width: 5),
                         Text(
                           "${clinic['avaliacao_clinica']} ★ (${clinic['total_avaliacoes']} avaliações)",
-                          style: TextStyle(fontSize: 16),
+                          style: const TextStyle(fontSize: 16),
                         ),
                       ],
                     ),
-                    SizedBox(height: 15),
+                    const SizedBox(height: 15),
                     if (clinic['imagem'] != null)
                       ClipRRect(
                         borderRadius: BorderRadius.circular(15),
@@ -168,24 +183,24 @@ class _ClinicasScreenState extends State<ClinicasScreen> {
                           fit: BoxFit.cover,
                         ),
                       ),
-                    SizedBox(height: 15),
+                    const SizedBox(height: 15),
                     Text(
                       clinic['descricao'] ?? 'Descrição não disponível',
                       textAlign: TextAlign.justify,
-                      style: TextStyle(fontSize: 16),
+                      style: const TextStyle(fontSize: 16),
                     ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: () {
                         Navigator.pop(context);
                       },
-                      child: Text('Fechar'),
                       style: ElevatedButton.styleFrom(
-                        minimumSize: Size(double.infinity, 50),
+                        minimumSize: const Size(double.infinity, 50),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
+                      child: Text('Fechar'),
                     ),
                   ],
                 ),
@@ -209,15 +224,22 @@ class _ClinicasScreenState extends State<ClinicasScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Clínicas Veterinárias"),
+        title: const Text("Clínicas Veterinárias"),
         actions: [
+          // Botão para centralizar o mapa na localização atual
           IconButton(
-            icon: Icon(Icons.my_location),
+            icon: const Icon(Icons.my_location),
             onPressed: _getCurrentLocation,
           ),
+          // Botão para recarregar as clínicas
           IconButton(
-            icon: Icon(Icons.refresh),
-            onPressed: _loadClinics,
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              setState(() {
+                isLoading = true;
+              });
+              _loadClinics();
+            },
           ),
         ],
       ),
@@ -226,25 +248,26 @@ class _ClinicasScreenState extends State<ClinicasScreen> {
           GoogleMap(
             onMapCreated: _onMapCreated,
             initialCameraPosition: CameraPosition(
-              target: _currentPosition ??
-                  LatLng(-5.08921, -42.8016), // Posição inicial: Teresina, PI
+              target: _currentPosition ?? const LatLng(-5.08921, -42.8016),
               zoom: 12,
             ),
             markers: markers.union(
               _currentPosition != null
                   ? {
                       Marker(
-                        markerId: MarkerId("current_location"),
+                        markerId: const MarkerId("current_location"),
                         position: _currentPosition!,
-                        icon: BitmapDescriptor.defaultMarkerWithHue(
-                            BitmapDescriptor.hueBlue),
-                        infoWindow: InfoWindow(title: "Você está aqui"),
+                        icon: _personIcon ?? BitmapDescriptor.defaultMarker,
+                        infoWindow: const InfoWindow(title: "Você está aqui"),
                       ),
                     }
                   : {},
             ),
           ),
-          if (isLoading) Center(child: CircularProgressIndicator()),
+          if (isLoading)
+            const Center(
+              child: CircularProgressIndicator(),
+            ),
         ],
       ),
     );
