@@ -17,19 +17,30 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false; // Estado de carregamento
 
   Future<void> _login() async {
+    // Validate inputs
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      _showErrorDialog('Por favor, preencha todos os campos.');
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
     try {
-      final token = await _userService.loginUser(
+      // realizando o login
+      bool success = await _userService.loginUser(
         email: _emailController.text.trim(),
-        senha: _passwordController.text.trim(),
+        senha: _passwordController.text,
       );
 
-      Navigator.pushReplacementNamed(context, '/launcher');
+      if (success) {
+        Navigator.pushReplacementNamed(context, '/launcher');
+      } else {
+        _showErrorDialog('Credenciais inválidas');
+      }
     } catch (e) {
-      _showErrorDialog(e.toString());
+      _showErrorDialog('Credenciais inválidas');
     } finally {
       setState(() {
         _isLoading = false;

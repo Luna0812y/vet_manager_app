@@ -17,9 +17,6 @@ class ReviewScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Armazenar a avaliação do usuário
-    double userRating = 0;
-
     // Imagem do local
     Widget buildProfileImage() {
       return CircleAvatar(
@@ -85,7 +82,6 @@ class ReviewScreen extends StatelessWidget {
                 color: Colors.amber,
               ),
               onRatingUpdate: (rating) {
-                userRating = rating;
                 print('Avaliação do Usuário: $rating');
               },
             ),

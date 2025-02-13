@@ -1,9 +1,9 @@
-import 'dart:convert';
-import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vet_manager/models/user.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'dart:convert';
+import 'dart:io';
 
 class UserService {
   static const String _baseUrl = 'https://vetmanager-cvof.onrender.com/users';

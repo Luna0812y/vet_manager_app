@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:vet_manager/screens/user/profile_screen.dart';
 import 'dart:convert';
-import 'package:vet_manager/services/agendamento_service.dart';
 
-import 'criar_agendamento_screen.dart';
+import 'criar_agendamento.dart';
 
 class AgendamentosScreen extends StatefulWidget {
   @override
@@ -92,10 +90,6 @@ class _AgendamentosScreenState extends State<AgendamentosScreen> {
 
   void _showAgendamentoDetails(Map<String, dynamic> agendamento) async {
     try {
-      final agendamentoService = AgendamentoService();
-      final detalhes = await agendamentoService
-          .detalharAgendamento(agendamento['id_agendamento'].toString());
-
       if (!mounted) return;
 
       showDialog(

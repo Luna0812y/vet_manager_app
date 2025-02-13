@@ -5,7 +5,6 @@ import 'package:vet_manager/screens/mapa.dart';
 import 'package:vet_manager/screens/pets/lista_pets.dart';
 import 'package:vet_manager/screens/user/profile_screen.dart';
 import 'package:vet_manager/services/clinica_service.dart';
-import 'package:vet_manager/services/user_service.dart';
 import 'package:vet_manager/screens/tela_inicial/avaliar.dart';
 import 'package:vet_manager/screens/tela_inicial/clinica_card.dart';
 
@@ -20,7 +19,6 @@ class LauncherScreen extends StatefulWidget {
 class _LauncherScreenState extends State<LauncherScreen> {
   int _selectedIndex = 0;
   final ClinicaService _clinicaService = ClinicaService();
-  final UserService _userService = UserService();
   List<Map<String, dynamic>> _clinicas = [];
   bool _isLoading = true;
   String _errorMessage = "";
@@ -80,8 +78,6 @@ class _LauncherScreenState extends State<LauncherScreen> {
   // Método principal de construção da interface
   @override
   Widget build(BuildContext context) {
-    double screenHeight = MediaQuery.of(context).size.height;
-
     return Scaffold(
       appBar: _buildAppBar(),
       body: SingleChildScrollView(

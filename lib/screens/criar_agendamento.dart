@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vet_manager/services/agendamento_service.dart';
-import 'dart:convert';
 import 'package:vet_manager/services/clinica_service.dart';
 import 'package:vet_manager/services/pet_service.dart';
-import 'package:vet_manager/services/user_service.dart';
 
 class CriarAgendamentoScreen extends StatefulWidget {
   const CriarAgendamentoScreen({super.key});
@@ -22,15 +18,11 @@ class _CriarAgendamentoScreenState extends State<CriarAgendamentoScreen> {
 
   final ClinicaService clinicService = ClinicaService();
   final PetService petService = PetService();
-  final UserService _userService = UserService();
 
   List<Map<String, dynamic>> _clinicas = [];
   List<Map<String, dynamic>> _pets = [];
   Map<String, dynamic>? _clinicaSelecionada;
   Map<String, dynamic>? _petSelecionado;
-
-  int? _userId;
-  String? _token;
 
   List<Map<String, dynamic>> _tiposServico = [];
   List<Map<String, dynamic>> _trabalhos = [];
@@ -40,29 +32,8 @@ class _CriarAgendamentoScreenState extends State<CriarAgendamentoScreen> {
   @override
   void initState() {
     super.initState();
-    _loadUserId();
-    _loadToken();
     _loadClinicas();
     _loadPets();
-  }
-
-  Future<void> _loadUserId() async {
-    int? userId = await _userService.getUserIdFromToken();
-    if (userId != null) {
-      setState(() {
-        _userId = userId;
-      });
-    }
-  }
-
-  Future<void> _loadToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? token = prefs.getString("token");
-    if (token != null && token.isNotEmpty) {
-      setState(() {
-        _token = token;
-      });
-    }
   }
 
   Future<void> _loadClinicas() async {
